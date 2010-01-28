@@ -6,7 +6,11 @@
 bin_PROGRAMS = pgpry
 
 pgpry_SOURCES = \
-	main.cpp
+	key.h key.cpp \
+	main.h main.cpp \
+	packetheader.h packetheader.cpp \
+	pistream.h pistream.cpp \
+	string2key.h string2key.cpp
 
 
 INCLUDES = \

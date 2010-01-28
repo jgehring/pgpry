@@ -17,14 +17,23 @@ sinclude(m4/ax_check_openssl.m4)
 # Checks for programs
 #
 
-AC_PROG_CXX
-AC_PROG_CC
-AC_PROG_INSTALL
+AC_PROG_CXX()
+AC_PROG_CC()
+AC_PROG_INSTALL()
 
 
 #
 # Checks for headers
 #
+
+
+
+#
+# Checks for system characteristics
+#
+
+AC_C_BIGENDIAN()
+
 
 
 #
