@@ -11,17 +11,25 @@ pgpry_SOURCES = \
 	main.h main.cpp \
 	packetheader.h packetheader.cpp \
 	pistream.h pistream.cpp \
-	string2key.h string2key.cpp
+	string2key.h string2key.cpp \
+	thread.h thread.cpp \
+	\
+	crackers/crackers.h crackers/crackers.cpp 
 
+
+CC = $(PTHREAD_CC)
 
 INCLUDES = \
-    $(OPENSSL_INCLUDES)
+	-Icrackers \
+	$(OPENSSL_INCLUDES)
 
 AM_CXXFLAGS = \
-	-Wall -pipe
+	-Wall -pipe \
+    $(PTHREAD_CFLAGS)
 
 AM_LDFLAGS = \
 	$(OPENSSL_LDFLAGS)
 
 LIBS += \
+	$(PTHREAD_LIBS) \
 	$(OPENSSL_LIBS)

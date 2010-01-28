@@ -10,6 +10,7 @@
 #include <cstdlib>
 #include <iostream>
 
+#include "crackers.h"
 #include "key.h"
 #include "pistream.h"
 
@@ -31,6 +32,11 @@ int main(int argc, char **argv)
 		std::cerr << "Err, this secret key doesn't seem to be encrypted" << std::endl;
 		return EXIT_FAILURE;
 	}
+
+	// Hm, quite a lot of crackers
+	Crackers::Cracker *cracker = Crackers::crackerFor(key);
+	cracker->start();
+	cracker->wait();
 
 	return EXIT_SUCCESS;
 }

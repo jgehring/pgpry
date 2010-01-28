@@ -11,6 +11,7 @@ AM_INIT_AUTOMAKE()
 AC_CONFIG_HEADER([config.h])
 
 sinclude(m4/ax_check_openssl.m4)
+sinclude(m4/ax_pthread.m4)
 
 
 #
@@ -39,6 +40,12 @@ AC_C_BIGENDIAN()
 #
 # Checks for libraries
 #
+
+# Pthread
+AX_PTHREAD()
+AC_SUBST([PTHREAD_LIBS])
+AC_SUBST([PTHREAD_CFLAGS])
+AC_SUBST([PTHREAD_CC])
 
 # OpenSSL
 AX_CHECK_OPENSSL()
