@@ -52,6 +52,11 @@ uint8_t *Key::encryptedData(uint8_t **data, uint32_t *len) const
 	return m_data;
 }
 
+String2Key Key::string2Key() const
+{
+	return m_s2k;
+}
+
 // Reads a key data from a stream 
 PIStream &Key::operator<<(PIStream &in)
 {

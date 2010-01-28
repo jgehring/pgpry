@@ -13,6 +13,8 @@
 
 #include "main.h"
 
+#include "cryptutils.h"
+
 class PIStream;
 class POStream;
 
@@ -26,19 +28,9 @@ class String2Key
 			SPEC_ITERATED_SALTED = 3
 		} Spec;
 
-		typedef enum {
-			CIPHER_UNKOWN = -1,
-			CIPHER_CAST5 = 3
-		} CipherAlgorithm;
-
-		typedef enum {
-			HASH_UNKOWN = -1,
-			HASH_MD5 = 1,
-			HASH_SHA1 = 2
-		} HashAlgorithm;
-
 	public:
 		String2Key();
+		String2Key(const String2Key &other);
 		~String2Key();
 
 		uint8_t usage() const;
@@ -46,15 +38,17 @@ class String2Key
 		PIStream &operator<<(PIStream &in);
 		POStream &operator>>(POStream &out);
 
+		String2Key &operator=(const String2Key &other);
+
 	private:
 		uint8_t m_usage;
 		Spec m_spec;
 
-		HashAlgorithm m_hashAlgorithm;
+		CryptUtils::HashAlgorithm m_hashAlgorithm;
 		uint8_t m_salt[8];
 		int32_t m_count;
 
-		CipherAlgorithm m_cipherAlgorithm;
+		CryptUtils::CipherAlgorithm m_cipherAlgorithm;
 		uint8_t *m_iv;
 };
 

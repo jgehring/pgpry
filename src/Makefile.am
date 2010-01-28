@@ -6,6 +6,7 @@
 bin_PROGRAMS = pgpry
 
 pgpry_SOURCES = \
+	cryptutils.h cryptutils.cpp \
 	key.h key.cpp \
 	main.h main.cpp \
 	packetheader.h packetheader.cpp \
