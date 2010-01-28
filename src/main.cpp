@@ -27,5 +27,10 @@ int main(int argc, char **argv)
 		return EXIT_FAILURE;
 	}
 
+	if (!key.locked()) {
+		std::cerr << "Err, this secret key doesn't seem to be encrypted" << std::endl;
+		return EXIT_FAILURE;
+	}
+
 	return EXIT_SUCCESS;
 }

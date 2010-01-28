@@ -35,6 +35,9 @@ class Key
 		Key();
 		~Key();
 
+		bool locked() const;
+		uint8_t *encryptedData(uint8_t **data, uint32_t *len) const;
+
 		PIStream &operator<<(PIStream &in);
 		POStream &operator>>(POStream &out);
 

@@ -18,8 +18,8 @@
 
 // Constructor
 Key::Key()
-	: m_version(255), m_algorithm(PKA_UNKOWN), m_rsa(NULL), m_dsa(NULL), m_expire(0),
-	  m_datalen(0), m_data(NULL)
+	: m_version(255), m_algorithm(PKA_UNKOWN), m_rsa(NULL), m_dsa(NULL), m_datalen(0),
+	  m_data(NULL), m_expire(0)
 {
 
 }
@@ -37,6 +37,21 @@ Key::~Key()
 	delete[] m_data;
 }
 
+// Query functions
+bool Key::locked() const
+{
+	return m_locked;
+}
+
+uint8_t *Key::encryptedData(uint8_t **data, uint32_t *len) const
+{
+	if (m_data) {
+		*len = m_datalen;
+	}
+	*data = m_data;
+	return m_data;
+}
+
 // Reads a key data from a stream 
 PIStream &Key::operator<<(PIStream &in)
 {
@@ -47,7 +62,7 @@ PIStream &Key::operator<<(PIStream &in)
 		throw "Invalid packet header";
 	}
 	if (header.type() != PacketHeader::TYPE_SECRET_KEY) {
-		throw "Invalid packet type";
+		throw "Invalid packet type (not a secret key)";
 	}
 	uint32_t headerOff = in.pos();
 
