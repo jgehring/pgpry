@@ -8,7 +8,12 @@
 
 
 #include <cassert>
+#include <cstring>
 #include <iostream>
+
+#include "string2key.h"
+
+#include "cast5crackers.h"
 
 #include "crackers.h"
 
@@ -17,8 +22,8 @@ namespace Crackers
 {
 
 // Constructor
-Cracker::Cracker()
-	: Thread()
+Cracker::Cracker(const Key &key)
+	: Thread(), m_key(key)
 {
 
 }
@@ -26,14 +31,32 @@ Cracker::Cracker()
 // Main thread loop
 void Cracker::run()
 {
+	init();
+
 	// TODO
 }
 
+// Cracker initialization routine
+void Cracker::init()
+{
+	// The default implementation does nothing
+}
 
-// Returns a cracker suited for the given key
+
+// Returns a cracker for the given key
 Cracker *crackerFor(const Key &key)
 {
-	return new Cracker();
+	const String2Key &s2k = key.string2Key();
+	switch (s2k.cipherAlgorithm())
+	{
+		case CryptUtils::CIPHER_CAST5:
+			return cast5CrackerFor(key);
+			break;
+
+		default: break;
+	}
+
+	return NULL;
 }
 
 } // namespace Crackers

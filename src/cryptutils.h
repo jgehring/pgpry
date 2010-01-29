@@ -18,6 +18,12 @@ namespace CryptUtils
 {
 
 typedef enum {
+	PKA_UNKOWN = 0,
+	PKA_RSA_ENCSIGN = 1,
+	PKA_DSA = 17
+} PublicKeyAlgorithm;
+
+typedef enum {
 	CIPHER_UNKOWN = -1,
 	CIPHER_CAST5 = 3
 } CipherAlgorithm;

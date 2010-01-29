@@ -35,8 +35,14 @@ int main(int argc, char **argv)
 
 	// Hm, quite a lot of crackers
 	Crackers::Cracker *cracker = Crackers::crackerFor(key);
-	cracker->start();
-	cracker->wait();
+	if (cracker) {
+		cracker->start();
+		cracker->wait();
+	} else {
+		std::cerr << "Error: Unsupported hash or cipher algorithm" << std::endl;
+		std::cerr << (int)key.string2Key().hashAlgorithm() << std::endl;
+		return EXIT_FAILURE;
+	}
 
 	return EXIT_SUCCESS;
 }

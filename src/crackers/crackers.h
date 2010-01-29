@@ -8,7 +8,7 @@
 
 
 #ifndef CRACKERS_H_
-#define CRACKERS_H
+#define CRACKERS_H_
 
 
 #include "key.h"
@@ -21,10 +21,16 @@ namespace Crackers
 class Cracker : public Thread
 {
 	public:
-		Cracker();
+		Cracker(const Key &key);
 
 	protected:
-		virtual void run();
+		void run();
+
+		virtual void init();
+		virtual bool check(const uint8_t *password, uint32_t length) = 0;
+
+	protected:
+		Key m_key;
 };
 
 

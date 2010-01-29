@@ -16,7 +16,7 @@
 
 // Constructor
 PIStream::PIStream(std::istream &stream)
-	: m_in(stream), m_armored(false),
+	: m_in(stream), m_read(0), m_armored(false),
 	  m_b64count(0), m_b64buf(0)
 {
 	// Check if the stream is armored. This isn't done
@@ -32,7 +32,7 @@ PIStream::PIStream(std::istream &stream)
 // Returns the current stream position
 uint32_t PIStream::pos() const
 {
-	return m_in.tellg();
+	return m_read;
 }
 
 // Reads binary data from the (possibly armored) stream
@@ -40,6 +40,7 @@ uint32_t PIStream::read(char *s, uint32_t n)
 {
 	if (!m_armored) {
 		m_in.read(s, n);
+		m_read += m_in.gcount();
 		return m_in.gcount();
 	}
 
@@ -75,6 +76,7 @@ uint32_t PIStream::read(char *s, uint32_t n)
 		}
 	}
 
+	m_read += br;
 	return br;
 }
 

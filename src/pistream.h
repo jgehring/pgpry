@@ -45,6 +45,8 @@ class PIStream
 
 	private:
 		std::istream &m_in;
+		uint32_t m_read;
+
 		bool m_armored;
 		int32_t m_b64count;
 		uint32_t m_b64buf;

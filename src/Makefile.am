@@ -14,7 +14,8 @@ pgpry_SOURCES = \
 	string2key.h string2key.cpp \
 	thread.h thread.cpp \
 	\
-	crackers/crackers.h crackers/crackers.cpp 
+	crackers/crackers.h crackers/crackers.cpp \
+	crackers/cast5crackers.h crackers/cast5crackers.cpp 
 
 
 CC = $(PTHREAD_CC)

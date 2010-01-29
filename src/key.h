@@ -16,6 +16,7 @@
 #include <openssl/rsa.h>
 #include <openssl/dsa.h>
 
+#include "cryptutils.h"
 #include "string2key.h"
 
 class PIStream;
@@ -25,28 +26,25 @@ class POStream;
 class Key
 {
 	public:
-		typedef enum {
-			PKA_UNKOWN = 0,
-			PKA_RSA_ENCSIGN = 1,
-			PKA_DSA = 17
-		} Algorithm;
-
-	public:
 		Key();
+		Key(const Key &other);
 		~Key();
 
 		bool locked() const;
-		uint8_t *encryptedData(uint8_t **data, uint32_t *len) const;
-		String2Key string2Key() const;
+		uint32_t dataLength() const;
+		const uint8_t *data() const;
+		const String2Key &string2Key() const;
 
 		PIStream &operator<<(PIStream &in);
 		POStream &operator>>(POStream &out);
+
+		Key &operator=(const Key &other);
 
 	private:
 		bool m_locked;
 		uint8_t m_version;
 
-		Algorithm m_algorithm;
+		CryptUtils::PublicKeyAlgorithm m_algorithm;
 		RSA *m_rsa;
 		DSA *m_dsa;
 

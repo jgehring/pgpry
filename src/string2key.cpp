@@ -42,15 +42,46 @@ uint8_t String2Key::usage() const
 	return m_usage;
 }
 
+String2Key::Spec String2Key::spec() const
+{
+	return m_spec;
+}
+
+CryptUtils::HashAlgorithm String2Key::hashAlgorithm() const
+{
+	return m_hashAlgorithm;
+}
+
+const uint8_t *String2Key::salt() const
+{
+	return m_salt;
+}
+
+int32_t String2Key::count() const
+{
+	return m_count;
+}
+
+CryptUtils::CipherAlgorithm String2Key::cipherAlgorithm() const
+{
+	return m_cipherAlgorithm;
+}
+
+const uint8_t *String2Key::ivec() const
+{
+	return m_iv;
+}
+
 // Reads S2K data from a stream 
 PIStream &String2Key::operator<<(PIStream &in)
 {
 	// Read usage and spec info
 	in >> m_usage;
 	if (m_usage == 254 || m_usage == 255) {
-		in >> reinterpret_cast<uint8_t &>(m_cipherAlgorithm);
-		in >> reinterpret_cast<uint8_t &>(m_spec);
-		in >> reinterpret_cast<uint8_t &>(m_hashAlgorithm);
+		uint8_t tmp;
+		in >> tmp; m_cipherAlgorithm = (CryptUtils::CipherAlgorithm)tmp;
+		in >> tmp; m_spec = (Spec)tmp;
+		in >> tmp; m_hashAlgorithm = (CryptUtils::HashAlgorithm)tmp;
 		switch (m_spec) {
 			case SPEC_SALTED:
 				in.read((char *)m_salt, 8);
@@ -71,7 +102,8 @@ PIStream &String2Key::operator<<(PIStream &in)
 				throw "Unknown String2Key spec";
 		}
 	} else if (m_usage != 0) {
-		in >> reinterpret_cast<uint8_t &>(m_cipherAlgorithm);
+		uint8_t tmp;
+		in >> tmp; m_cipherAlgorithm = (CryptUtils::CipherAlgorithm)tmp;
 		m_spec = SPEC_SIMPLE;
 	}
 

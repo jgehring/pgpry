@@ -34,6 +34,14 @@ class String2Key
 		~String2Key();
 
 		uint8_t usage() const;
+		Spec spec() const;
+
+		CryptUtils::HashAlgorithm hashAlgorithm() const;
+		const uint8_t *salt() const;
+		int32_t count() const;
+
+		CryptUtils::CipherAlgorithm cipherAlgorithm() const;
+		const uint8_t *ivec() const;
 
 		PIStream &operator<<(PIStream &in);
 		POStream &operator>>(POStream &out);

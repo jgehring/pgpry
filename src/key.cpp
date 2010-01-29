@@ -18,10 +18,17 @@
 
 // Constructor
 Key::Key()
-	: m_version(255), m_algorithm(PKA_UNKOWN), m_rsa(NULL), m_dsa(NULL), m_datalen(0),
-	  m_data(NULL), m_expire(0)
+	: m_version(255), m_algorithm(CryptUtils::PKA_UNKOWN), m_rsa(NULL), m_dsa(NULL),
+	  m_datalen(0), m_data(NULL), m_expire(0)
 {
 
+}
+
+// Copy constructor
+Key::Key(const Key &other)
+	: m_rsa(NULL), m_dsa(NULL), m_data(NULL)
+{
+	*this = other;
 }
 
 // Destructor
@@ -43,16 +50,17 @@ bool Key::locked() const
 	return m_locked;
 }
 
-uint8_t *Key::encryptedData(uint8_t **data, uint32_t *len) const
+uint32_t Key::dataLength() const
 {
-	if (m_data) {
-		*len = m_datalen;
-	}
-	*data = m_data;
+	return m_datalen;
+}
+
+const uint8_t *Key::data() const
+{
 	return m_data;
 }
 
-String2Key Key::string2Key() const
+const String2Key &Key::string2Key() const
 {
 	return m_s2k;
 }
@@ -81,12 +89,12 @@ PIStream &Key::operator<<(PIStream &in)
 		in >> m_expire;
 	}
 	uint8_t tmp;
-	in >> tmp; m_algorithm = (Algorithm)tmp;
-	if (m_algorithm == PKA_RSA_ENCSIGN) {
+	in >> tmp; m_algorithm = (CryptUtils::PublicKeyAlgorithm)tmp;
+	if (m_algorithm == CryptUtils::PKA_RSA_ENCSIGN) {
 		m_rsa = RSA_new();
 		in >> m_rsa->n;
 		in >> m_rsa->e;
-	} else if (m_algorithm == PKA_DSA) {
+	} else if (m_algorithm == CryptUtils::PKA_DSA) {
 		m_dsa = DSA_new();
 		in >> m_dsa->p;
 		in >> m_dsa->q;
@@ -107,12 +115,12 @@ PIStream &Key::operator<<(PIStream &in)
 		}
 	} else {
 		// Plaintext
-		if (m_algorithm == PKA_RSA_ENCSIGN) {
+		if (m_algorithm == CryptUtils::PKA_RSA_ENCSIGN) {
 			in >> m_rsa->d;
 			in >> m_rsa->p;
 			in >> m_rsa->q;
-//			in >> m_rsa->iqmp;
-		} else if (m_algorithm == PKA_DSA) {
+			in >> m_rsa->iqmp;
+		} else if (m_algorithm == CryptUtils::PKA_DSA) {
 			in >> m_dsa->priv_key;
 		}
 	}
@@ -120,4 +128,57 @@ PIStream &Key::operator<<(PIStream &in)
 	m_locked = (m_s2k.usage() != 0);
 
 	return in;
+}
+
+// Assignment operator
+Key &Key::operator=(const Key &other)
+{
+	m_locked = other.m_locked;
+	m_version = other.m_version;
+
+	m_algorithm = other.m_algorithm;
+
+	if (other.m_rsa) {
+		m_rsa = RSA_new();
+		m_rsa->n = BN_dup(other.m_rsa->n);
+		m_rsa->e = BN_dup(other.m_rsa->e);
+		if (!other.m_locked) {
+			m_rsa->d = BN_dup(other.m_rsa->d);
+			m_rsa->p = BN_dup(other.m_rsa->p);
+			m_rsa->q = BN_dup(other.m_rsa->q);
+			m_rsa->iqmp = BN_dup(other.m_rsa->iqmp);
+		}
+	} else if (m_rsa) {
+		RSA_free(m_rsa);
+		m_rsa = NULL;
+	}
+
+	if (other.m_dsa) {
+		m_dsa = DSA_new();
+		m_dsa->p = BN_dup(other.m_dsa->p);
+		m_dsa->q = BN_dup(other.m_dsa->q);
+		m_dsa->g = BN_dup(other.m_dsa->g);
+		m_dsa->pub_key = BN_dup(other.m_dsa->pub_key);
+		if (!other.m_locked) {
+			m_dsa->priv_key = BN_dup(other.m_dsa->priv_key);
+		}
+	} else if (m_dsa) {
+		DSA_free(m_dsa);
+		m_dsa = NULL;
+	}
+
+	m_s2k = other.m_s2k;
+	m_datalen = other.m_datalen;
+	delete[] m_data;
+	if (m_s2k.usage() != 0) {
+		m_data = new uint8_t[m_datalen];
+		memcpy(m_data, other.m_data, m_datalen);
+	} else {
+		m_data = NULL;
+	}
+
+	m_time = other.m_time;
+	m_expire = other.m_expire;
+
+	return *this;
 }
