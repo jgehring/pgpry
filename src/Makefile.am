@@ -13,6 +13,11 @@ pgpry_SOURCES = \
 	pistream.h pistream.cpp \
 	string2key.h string2key.cpp \
 	thread.h thread.cpp \
+	utils.h utils.cpp \
+	\
+	guessers/guessers.h guessers/guessers.cpp \
+	guessers/charsteguesser.h guessers/charsetguesser.cpp \
+	guessers/incguesser.h guessers/incguesser.cpp \
 	\
 	crackers/crackers.h crackers/crackers.cpp \
 	crackers/cast5crackers.h crackers/cast5crackers.cpp 
@@ -21,6 +26,7 @@ pgpry_SOURCES = \
 CC = $(PTHREAD_CC)
 
 INCLUDES = \
+	-Iguessers \
 	-Icrackers \
 	$(OPENSSL_INCLUDES)
 

@@ -14,6 +14,9 @@
 #include "key.h"
 #include "thread.h"
 
+#include "charsetguesser.h"
+#include "incguesser.h"
+
 
 namespace Crackers
 {
@@ -22,6 +25,7 @@ class Cracker : public Thread
 {
 	public:
 		Cracker(const Key &key);
+		virtual ~Cracker() { }
 
 	protected:
 		void run();
@@ -36,7 +40,7 @@ class Cracker : public Thread
 
 Cracker *crackerFor(const Key &key);
 
-} // namespace Crackers;
+} // namespace Crackers
 
 
 #endif // CRACKERS_H_
