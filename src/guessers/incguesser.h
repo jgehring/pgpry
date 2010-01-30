@@ -20,12 +20,12 @@ namespace Guessers
 class IncrementalGuesser : public CharsetGuesser
 {
 	public:
-		IncrementalGuesser();
+		IncrementalGuesser(Buffer *buffer);
 		~IncrementalGuesser();
 
 	protected:
 		bool init();
-		bool guess();
+		bool guess(Memblock *m);
 
 	private:
 		uint32_t m_length;

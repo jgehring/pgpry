@@ -17,6 +17,8 @@
 #include "charsetguesser.h"
 #include "incguesser.h"
 
+class Buffer;
+
 
 namespace Crackers
 {
@@ -24,21 +26,24 @@ namespace Crackers
 class Cracker : public Thread
 {
 	public:
-		Cracker(const Key &key);
+		Cracker(const Key &key, Buffer *buffer);
 		virtual ~Cracker() { }
 
 	protected:
 		void run();
 
-		virtual void init();
+		virtual bool init();
 		virtual bool check(const uint8_t *password, uint32_t length) = 0;
 
 	protected:
 		Key m_key;
+
+	private:
+		Buffer *m_buffer;
 };
 
 
-Cracker *crackerFor(const Key &key);
+Cracker *crackerFor(const Key &key, Buffer *buffer);
 
 } // namespace Crackers
 

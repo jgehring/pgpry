@@ -19,8 +19,8 @@ namespace Guessers
 {
 
 // Constructor
-CharsetGuesser::CharsetGuesser()
-	: Guesser(), m_charset(NULL), m_cslength(0), m_minlength(0), m_maxlength(0)
+CharsetGuesser::CharsetGuesser(Buffer *buffer)
+	: Guesser(buffer), m_charset(NULL), m_cslength(0), m_minlength(0), m_maxlength(0)
 {
 
 }

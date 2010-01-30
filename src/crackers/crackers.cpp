@@ -11,6 +11,7 @@
 #include <cstring>
 #include <iostream>
 
+#include "buffer.h"
 #include "string2key.h"
 
 #include "cast5crackers.h"
@@ -22,8 +23,8 @@ namespace Crackers
 {
 
 // Constructor
-Cracker::Cracker(const Key &key)
-	: Thread(), m_key(key)
+Cracker::Cracker(const Key &key, Buffer *buffer)
+	: Thread(), m_key(key), m_buffer(buffer)
 {
 
 }
@@ -31,26 +32,37 @@ Cracker::Cracker(const Key &key)
 // Main thread loop
 void Cracker::run()
 {
-	init();
+	if (!init()) {
+		std::cerr << "Error initializing cracker!" << std::endl;
+		return;
+	}
 
-	// TODO
+	Memblock block;
+	while (true) {
+		m_buffer->take(&block);
+		if (check(block.data, block.length)) {
+			std::cout << "FOUND PASSPHRASE: " << block.data << std::endl;
+			break;
+		}
+	}
 }
 
 // Cracker initialization routine
-void Cracker::init()
+bool Cracker::init()
 {
 	// The default implementation does nothing
+	return true;
 }
 
 
 // Returns a cracker for the given key
-Cracker *crackerFor(const Key &key)
+Cracker *crackerFor(const Key &key, Buffer *buffer)
 {
 	const String2Key &s2k = key.string2Key();
 	switch (s2k.cipherAlgorithm())
 	{
 		case CryptUtils::CIPHER_CAST5:
-			return cast5CrackerFor(key);
+			return cast5CrackerFor(key, buffer);
 			break;
 
 		default: break;

@@ -6,14 +6,19 @@
 bin_PROGRAMS = pgpry
 
 pgpry_SOURCES = \
+	buffer.h buffer.cpp \
 	cryptutils.h cryptutils.cpp \
 	key.h key.cpp \
 	main.h main.cpp \
+	memblock.h \
+	mutex.h mutex.cpp \
 	packetheader.h packetheader.cpp \
 	pistream.h pistream.cpp \
+	psemaphore.h psemaphore.cpp \
 	string2key.h string2key.cpp \
 	thread.h thread.cpp \
 	utils.h utils.cpp \
+	watch.h watch.cpp \
 	\
 	guessers/guessers.h guessers/guessers.cpp \
 	guessers/charsteguesser.h guessers/charsetguesser.cpp \

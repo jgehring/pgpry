@@ -7,6 +7,8 @@
  */
 
 
+#include "memblock.h"
+
 #include "incguesser.h"
 
 
@@ -14,8 +16,8 @@ namespace Guessers
 {
 
 // Constructor
-IncrementalGuesser::IncrementalGuesser()
-	: CharsetGuesser(), m_length(0), m_indexes(NULL)
+IncrementalGuesser::IncrementalGuesser(Buffer *buffer)
+	: CharsetGuesser(buffer), m_length(0), m_indexes(NULL)
 {
 
 }
@@ -34,8 +36,8 @@ bool IncrementalGuesser::init()
 	}
 
 	m_length = m_minlength;
-	m_indexes = new uint32_t[m_length];
-	for (uint32_t i = 0; i < m_length; i++) {
+	m_indexes = new uint32_t[m_maxlength];
+	for (uint32_t i = 0; i < m_maxlength; i++) {
 		m_indexes[i] = 0;
 	}
 
@@ -43,10 +45,10 @@ bool IncrementalGuesser::init()
 }
 
 // Guesses a pass pharse and returns false if the search space is exhausted
-bool IncrementalGuesser::guess()
+bool IncrementalGuesser::guess(Memblock *m)
 {
 	// Determine next phrase
-	uint32_t i = m_length - 1;
+	int32_t i = m_length - 1;
 	while (++m_indexes[i] >= m_cslength) {
 		m_indexes[i] = 0;
 		if (--i < 0) {
@@ -58,6 +60,13 @@ bool IncrementalGuesser::guess()
 			}
 			break;
 		}
+	}
+
+	if (m->length != m_length) {
+		m->resize(m_length);
+	}
+	for (uint32_t j = 0; j < m_length; j++) {
+		m->data[j] = m_charset[m_indexes[j]];
 	}
 
 	return true;

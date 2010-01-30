@@ -21,16 +21,16 @@ namespace Crackers
 {
 
 // Constructor
-Cast5MD5Cracker::Cast5MD5Cracker(const Key &key)
-	: Cracker(key)
+Cast5MD5Cracker::Cast5MD5Cracker(const Key &key, Buffer *buffer)
+	: Cracker(key, buffer)
 {
 
 }
 
 
 // Constructor
-Cast5SHA1Cracker::Cast5SHA1Cracker(const Key &key)
-	: Cracker(key), m_keybuf(NULL), m_in(NULL), m_out(NULL)
+Cast5SHA1Cracker::Cast5SHA1Cracker(const Key &key, Buffer *buffer)
+	: Cracker(key, buffer), m_keybuf(NULL), m_in(NULL), m_out(NULL)
 {
 
 }
@@ -44,7 +44,7 @@ Cast5SHA1Cracker::~Cast5SHA1Cracker()
 }
 
 // Cracker initialization
-void Cast5SHA1Cracker::init()
+bool Cast5SHA1Cracker::init()
 {
 	const String2Key &s2k = m_key.string2Key();
 
@@ -59,6 +59,8 @@ void Cast5SHA1Cracker::init()
 	m_in = new uint8_t[m_datalen];
 	memcpy(m_in, m_key.data(), m_datalen);
 	m_out = new uint8_t[m_datalen];
+
+	return true;
 }
 
 // Checks if a password is valid
@@ -135,15 +137,15 @@ bool Cast5SHA1Cracker::check(const uint8_t *password, uint32_t length)
 
 
 // Returns a cracker for the given key
-Cracker *cast5CrackerFor(const Key &key)
+Cracker *cast5CrackerFor(const Key &key, Buffer *buffer)
 {
 	const String2Key &s2k = key.string2Key();
 	switch (s2k.hashAlgorithm()) {
 //		case CryptUtils::HASH_MD5:
-//			return new Cast5MD5Cracker(key);
+//			return new Cast5MD5Cracker(key, buffer);
 
 		case CryptUtils::HASH_SHA1:
-			return new Cast5SHA1Cracker(key);
+			return new Cast5SHA1Cracker(key, buffer);
 
 		default: break;
 	}

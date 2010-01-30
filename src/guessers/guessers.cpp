@@ -9,6 +9,9 @@
 
 #include <iostream>
 
+#include "buffer.h"
+#include "watch.h"
+
 #include "guessers.h"
 
 #include "incguesser.h"
@@ -18,8 +21,8 @@ namespace Guessers
 {
 
 // Constructor
-Guesser::Guesser()
-	: Thread()
+Guesser::Guesser(Buffer *buffer)
+	: Thread(), m_buffer(buffer)
 {
 
 }
@@ -37,6 +40,22 @@ void Guesser::run()
 		std::cerr << "Error initializing guesser!" << std::endl;
 		return;
 	}
+
+	Watch watch;
+	uint32_t n = 0;
+
+	Memblock block;
+	while (guess(&block)) {
+		m_buffer->put(block);
+		++n;
+
+		if (watch.elapsed() > 2000) {
+			std::cout << "Rate: " << 1000 * (double)n/watch.elapsed() << " phrases / second. ";
+			std::cout << "Phrase: " << block.data << std::endl;
+			watch.start();
+			n = 0;
+		}
+	}
 }
 
 // Initializes the guesser
@@ -48,9 +67,9 @@ bool Guesser::init()
 
 
 // Returns a guesser using the given name
-Guesser *guesser(const std::string &name)
+Guesser *guesser(const std::string &name, Buffer *buffer)
 {
-	Guesser *g = new IncrementalGuesser();
+	Guesser *g = new IncrementalGuesser(buffer);
 	return g;
 }
 

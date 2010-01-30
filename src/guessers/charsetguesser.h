@@ -22,7 +22,7 @@ namespace Guessers
 class CharsetGuesser : public Guesser
 {
 	public:
-		CharsetGuesser();
+		CharsetGuesser(Buffer *buffer);
 		~CharsetGuesser();
 
 		virtual void setup(const std::map<std::string, std::string> &options);

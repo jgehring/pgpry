@@ -10,6 +10,8 @@
 #include <cstdlib>
 #include <iostream>
 
+#include "buffer.h"
+#include "guessers.h"
 #include "crackers.h"
 #include "key.h"
 #include "pistream.h"
@@ -33,8 +35,16 @@ int main(int argc, char **argv)
 		return EXIT_FAILURE;
 	}
 
+	std::map<std::string, std::string> options;
+
+	// Test, test
+	Buffer buffer;
+	Guessers::Guesser *guesser = Guessers::guesser("incremental", &buffer);
+	guesser->setup(options);
+	guesser->start();
+
 	// Hm, quite a lot of crackers
-	Crackers::Cracker *cracker = Crackers::crackerFor(key);
+	Crackers::Cracker *cracker = Crackers::crackerFor(key, &buffer);
 	if (cracker) {
 		cracker->start();
 		cracker->wait();
