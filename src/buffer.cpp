@@ -12,7 +12,7 @@
 
 // Constructor
 Buffer::Buffer(uint32_t size)
-	: m_used(0), m_free(size), m_size(size)
+	: m_size(size), m_used(0), m_free(size)
 {
 	m_data = new Memblock[size];
 	m_start = m_end = m_data;
