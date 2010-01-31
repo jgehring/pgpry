@@ -69,8 +69,10 @@ bool Guesser::init()
 // Returns a guesser using the given name
 Guesser *guesser(const std::string &name, Buffer *buffer)
 {
-	Guesser *g = new IncrementalGuesser(buffer);
-	return g;
+	if (name == "incremental") {
+		return new IncrementalGuesser(buffer);
+	}
+	return NULL;
 }
 
 } // namespace Guessers

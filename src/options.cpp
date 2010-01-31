@@ -9,6 +9,8 @@
 
 #include <iostream>
 
+#include "utils.h"
+
 #include "options.h"
 
 
@@ -28,6 +30,12 @@ void Options::parse(int argc, char **argv)
 			m_help = true;
 		} else if (a == "--version") {
 			m_version = true;
+		} else if (a == "-g" && i < argc-1) {
+			m_guesser = argv[++i];
+		} else if (!a.compare(0, 10, "--guesser=")) {
+			m_guesser = a.substr(10);
+		} else {
+			throw Utils::strprintf("Unkown argument %s", argv[i]);
 		}
 	}
 }

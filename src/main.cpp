@@ -62,6 +62,10 @@ int main(int argc, char **argv)
 	// Test, test
 	Buffer buffer;
 	Guessers::Guesser *guesser = Guessers::guesser(options.guesser(), &buffer);
+	if (guesser == NULL) {
+		std::cerr << "Error: Unkown guessing method " << options.guesser() << std::endl;
+		return EXIT_FAILURE;
+	}
 	guesser->setup(options.guesserOptions());
 	guesser->start();
 
