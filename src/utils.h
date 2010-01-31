@@ -22,6 +22,8 @@ namespace Utils
 bool str2int(const std::string &str, int32_t *i);
 bool str2int(const std::string &str, uint32_t *i);
 
+std::string strprintf(const char *format, ...);
+
 } // namespace Utils
 
 

@@ -12,6 +12,7 @@
 
 #include "packetheader.h"
 #include "pistream.h"
+#include "utils.h"
 
 #include "key.h"
 
@@ -75,14 +76,14 @@ PIStream &Key::operator<<(PIStream &in)
 		throw "Invalid packet header";
 	}
 	if (header.type() != PacketHeader::TYPE_SECRET_KEY) {
-		throw "Invalid packet type (not a secret key)";
+		throw Utils::strprintf("Invalid packet type %d (not a secret key)", header.type());
 	}
 	uint32_t headerOff = in.pos();
 
 	// Read public key
 	in >> m_version;
 	if (m_version != 3 && m_version != 4) {
-		throw "Unspported key version";
+		throw Utils::strprintf("Unspported key version %d", m_version);
 	}
 	in >> m_time;
 	if (m_version == 3) {
@@ -101,7 +102,7 @@ PIStream &Key::operator<<(PIStream &in)
 		in >> m_dsa->g;
 		in >> m_dsa->pub_key;
 	} else {
-		throw "Unsupprted public-key algorithm";
+		throw Utils::strprintf("Unsupprted public-key algorithm %d", m_algorithm);
 	}
 
 	// Read private key

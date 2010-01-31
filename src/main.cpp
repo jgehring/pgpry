@@ -11,22 +11,46 @@
 #include <iostream>
 
 #include "buffer.h"
-#include "guessers.h"
 #include "crackers.h"
+#include "guessers.h"
 #include "key.h"
+#include "options.h"
 #include "pistream.h"
 
 
 // Program entry point
 int main(int argc, char **argv)
 {
+	// Parse options
+	Options options;
+	try {
+		options.parse(argc, argv);
+	} catch (const std::string &str) {
+		std::cerr << "Error parsing arguments: " << str << std::endl;
+		return EXIT_FAILURE;
+	} catch (const char *cstr) {
+		std::cerr << "Error parsing arguments: " << cstr << std::endl;
+		return EXIT_FAILURE;
+	}
+
+	if (options.helpRequested()) {
+		options.printHelp();
+		return EXIT_SUCCESS;
+	} else if (options.versionRequested()) {
+		options.printVersion();
+		return EXIT_SUCCESS;
+	}
+
 	// Read key from stdin
 	Key key;
 	try {
 		PIStream in(std::cin);
 		in >> key;
-	} catch (const char *str) {
+	} catch (const std::string &str) {
 		std::cerr << "Exception while parsing key: " << str << std::endl;
+		return EXIT_FAILURE;
+	} catch (const char *cstr) {
+		std::cerr << "Exception while parsing key: " << cstr << std::endl;
 		return EXIT_FAILURE;
 	}
 
@@ -35,12 +59,10 @@ int main(int argc, char **argv)
 		return EXIT_FAILURE;
 	}
 
-	std::map<std::string, std::string> options;
-
 	// Test, test
 	Buffer buffer;
-	Guessers::Guesser *guesser = Guessers::guesser("incremental", &buffer);
-	guesser->setup(options);
+	Guessers::Guesser *guesser = Guessers::guesser(options.guesser(), &buffer);
+	guesser->setup(options.guesserOptions());
 	guesser->start();
 
 	// Hm, quite a lot of crackers

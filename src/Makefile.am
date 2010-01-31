@@ -12,6 +12,7 @@ pgpry_SOURCES = \
 	main.h main.cpp \
 	memblock.h \
 	mutex.h mutex.cpp \
+	options.h options.cpp \
 	packetheader.h packetheader.cpp \
 	pistream.h pistream.cpp \
 	psemaphore.h psemaphore.cpp \
