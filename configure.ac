@@ -24,16 +24,37 @@ AC_PROG_INSTALL()
 
 
 #
-# Checks for headers
+# Checks for types
 #
 
+AC_TYPE_INT8_T()
+AC_TYPE_INT16_T()
+AC_TYPE_INT32_T()
+AC_TYPE_UINT8_T()
+AC_TYPE_UINT16_T()
+AC_TYPE_UINT32_T()
 
 
 #
-# Checks for system characteristics
+# Checks for system and compiler characteristics
 #
 
 AC_C_BIGENDIAN()
+
+
+#
+# Checks for headers
+#
+
+AC_CHECK_HEADERS([sys/time.h])
+
+
+#
+# Checks for functions
+#
+
+AC_FUNC_MALLOC()
+AC_CHECK_FUNCS([gettimeofday memset strtol])
 
 
 
