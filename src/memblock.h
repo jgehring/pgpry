@@ -4,6 +4,9 @@
  *
  * file: memblock.h
  * Simple data block class
+ *
+ * All functions make sure that there's always a trailing null byte. This way,
+ * other classes are able to treat the data pointer like a string.
  */
 
 
@@ -47,9 +50,10 @@ inline Memblock::Memblock()
 inline Memblock::Memblock(const char *string)
 {
 	length = strlen(string);
-	data = new uint8_t[length];
+	data = new uint8_t[length+1];
+	data[length] = 0x00;
 	memcpy(data, string, length);
-	m_alloced = length;
+	m_alloced = length+1;
 }
 
 inline Memblock::Memblock(const Memblock &other)
@@ -65,11 +69,20 @@ inline Memblock::~Memblock()
 
 inline void Memblock::resize(uint32_t n)
 {
-	if (m_alloced < n) {
+	if (data == NULL) {
+		data = new uint8_t[n+1];
+		data[n] = 0x00;
+		m_alloced = n+1;
+		length = n;
+		return;
+	}
+
+	if (m_alloced < n+1) {
 		uint8_t *tmp = data;
-		data = new uint8_t[n];
-		m_alloced = n;
-		memcpy(data, tmp, length);
+		data = new uint8_t[n+1];
+		data[n] = 0x00;
+		m_alloced = n+1;
+		memcpy(data, tmp, length+1);
 		delete[] tmp;
 	}
 	length = n;
@@ -89,10 +102,11 @@ inline Memblock &Memblock::operator=(const Memblock &other)
 		return *this;
 	}
 
-	if (m_alloced < other.length) {
+	if (m_alloced < other.length+1) {
 		delete[] data;
-		data = new uint8_t[other.length];
-		m_alloced = other.length;
+		data = new uint8_t[other.length+1];
+		data[other.length] = 0x00;
+		m_alloced = other.length+1;
 	}
 
 	memcpy(data, other.data, other.length);
