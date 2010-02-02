@@ -52,7 +52,8 @@ void CharsetGuesser::setup(const std::map<std::string, std::string> &options)
 		}
 	}
 
-	m_minlength = 1;
+	m_minlength = Utils::defaultOption(options, "min", 1);
+	m_maxlength = Utils::defaultOption(options, "max", 10);
 	it = options.find("min");
 	if (it != options.end()) {
 		uint32_t t;

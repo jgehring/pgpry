@@ -15,11 +15,25 @@
 #include <limits>
 #include <sstream>
 
+#include <arpa/inet.h>
+
 #include "utils.h"
 
 
 namespace Utils
 {
+
+// Converts a number to big endian format
+uint32_t toBigEndian(uint32_t i)
+{
+	return htons(i);
+}
+
+// Converts a number from big endian format (to the host format)
+uint32_t fromBigEndian(uint32_t i)
+{
+	return ntohs(i);
+}
 
 // Wrapper for strtol()
 template<typename T>
@@ -48,6 +62,14 @@ bool str2int(const std::string &str, int32_t *i)
 bool str2int(const std::string &str, uint32_t *i)
 {
 	return tstr2int<uint32_t>(str, i);
+}
+
+// Converts an interger to a string
+std::string int2str(int32_t i)
+{
+	std::stringstream out;
+	out << i;
+	return out.str();
 }
 
 // sprintf for std::string
@@ -106,6 +128,28 @@ std::string strprintf(const char *format, ...)
 
 	va_end(vl);
 	return os.str();
+}
+
+// Returns an option from the given map or a default value
+std::string defaultOption(const std::map<std::string, std::string> &options, const std::string name, const std::string &def)
+{
+	std::map<std::string, std::string>::const_iterator it = options.find(name);
+	if (it != options.end()) {
+		return (*it).second;
+	} else {
+		return def;
+	}
+}
+
+// Returns an option from the given map or a default value
+int32_t defaultOption(const std::map<std::string, std::string> &options, const std::string name, int32_t def)
+{
+	int32_t i;
+	if (str2int(defaultOption(options, name, int2str(def)), &i)) {
+		return i;
+	} else {
+		return def;
+	}
 }
 
 } // namespace Utils
