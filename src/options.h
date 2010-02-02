@@ -34,6 +34,7 @@ class Options
 
 	private:
 		void reset();
+		static void printOption(const std::string &option, const std::string &text);
 
 	private:
 		bool m_help;
