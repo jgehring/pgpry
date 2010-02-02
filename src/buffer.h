@@ -19,8 +19,10 @@
 class Buffer
 {
 	public:
-		Buffer(uint32_t size = 2048);
+		Buffer(uint32_t size = 8192);
 		~Buffer();
+
+		uint32_t size();
 
 		void put(const Memblock &m);
 		void take(Memblock *m);
@@ -37,6 +39,15 @@ class Buffer
 
 
 // Inlined functions
+inline uint32_t Buffer::size()
+{
+	uint32_t t;
+	m_mutex.lock();
+	t = m_size;
+	m_mutex.unlock();
+	return t;
+}
+
 inline void Buffer::put(const Memblock &m)
 {
 	--m_free;
