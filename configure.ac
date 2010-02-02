@@ -5,7 +5,7 @@
 # Process this file with autoconf to produce a configure script.
 #
 
-AC_PREREQ([2.63])
+AC_PREREQ([2.6])
 AC_INIT(pgpry, alpha, jonas.gehring@boolsoft.org)
 AM_INIT_AUTOMAKE()
 AC_CONFIG_HEADER([config.h])
