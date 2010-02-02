@@ -53,6 +53,7 @@ inline Memblock::Memblock(const char *string)
 }
 
 inline Memblock::Memblock(const Memblock &other)
+	: data(NULL), length(0), m_alloced(0)
 {
 	*this = other;
 }
@@ -77,6 +78,14 @@ inline void Memblock::resize(uint32_t n)
 inline Memblock &Memblock::operator=(const Memblock &other)
 {
 	if (this == &other) {
+		return *this;
+	}
+
+	if (other.data == NULL) {
+		delete[] data;
+		data = NULL;
+		length = 0;
+		m_alloced = 0;
 		return *this;
 	}
 
