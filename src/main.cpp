@@ -16,6 +16,7 @@
 #include "key.h"
 #include "options.h"
 #include "pistream.h"
+#include "regexfilter.h"
 
 
 // Program entry point

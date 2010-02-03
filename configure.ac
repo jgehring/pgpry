@@ -55,6 +55,7 @@ AC_CHECK_HEADERS([sys/time.h])
 
 AC_FUNC_MALLOC()
 AC_CHECK_FUNCS([gettimeofday memset strtol])
+AC_CHECK_FUNCS([regcomp])
 
 
 

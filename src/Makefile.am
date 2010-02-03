@@ -15,7 +15,9 @@ pgpry_SOURCES = \
 	options.h options.cpp \
 	packetheader.h packetheader.cpp \
 	pistream.h pistream.cpp \
+	pregex.h pregex.cpp \
 	psemaphore.h psemaphore.cpp \
+	regexfilter.h regexfilter.cpp \
 	string2key.h string2key.cpp \
 	thread.h thread.cpp \
 	utils.h utils.cpp \
