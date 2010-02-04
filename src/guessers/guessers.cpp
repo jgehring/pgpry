@@ -43,16 +43,23 @@ void Guesser::run()
 	}
 
 	Watch watch;
-	uint32_t n = 0;
+	uint32_t n = 0, numBlocks = 0;
 
-	Memblock block;
-	while (guess(&block)) {
-		m_buffer->put(block);
-		++n;
+	Memblock blocks[8];
+	while (true) {
+		for (numBlocks = 0; numBlocks < 8; numBlocks++) {
+			if (!guess(&blocks[numBlocks])) {
+				numBlocks--;
+				break;
+			}
+		}
+
+		m_buffer->putn(numBlocks, blocks);
+		n += numBlocks;
 
 		if (watch.elapsed() > 2000) {
 			std::cout << "Rate: " << 1000 * (double)n/watch.elapsed() << " phrases / second. ";
-			std::cout << "Phrase: " << block.data << std::endl;
+			std::cout << "Phrase: " << blocks[numBlocks-1].data << std::endl;
 			watch.start();
 			n = 0;
 		}

@@ -11,6 +11,7 @@
 #define PSEMAPHORE_H_
 
 
+#include <pthread.h>
 #include <semaphore.h>
 
 #include "main.h"
@@ -22,25 +23,33 @@ class Semaphore
 		Semaphore(uint32_t n = 0);
 		~Semaphore();
 
-		Semaphore &operator--();
-		Semaphore &operator++();
+		void acquire(int32_t n = 1);
+		void release(int32_t n = 1);
 
 	private:
-		sem_t m_sem;
+		int32_t m_avail;
+		pthread_mutex_t m_mutex;
+		pthread_cond_t m_cond;
 };
 
 
 // Inlined functions
-inline Semaphore &Semaphore::operator--()
+inline void Semaphore::acquire(int32_t n)
 {
-	sem_wait(&m_sem);	
-	return *this;
+	pthread_mutex_lock(&m_mutex);
+	while (n > m_avail) {
+		pthread_cond_wait(&m_cond, &m_mutex);
+	}
+	m_avail -= n;
+	pthread_mutex_unlock(&m_mutex);
 }
 
-inline Semaphore &Semaphore::operator++()
+inline void Semaphore::release(int32_t n)
 {
-	sem_post(&m_sem);	
-	return *this;
+	pthread_mutex_lock(&m_mutex);
+	m_avail += n;
+	pthread_cond_broadcast(&m_cond);
+	pthread_mutex_unlock(&m_mutex);
 }
 
 

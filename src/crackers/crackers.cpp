@@ -38,12 +38,16 @@ void Cracker::run()
 		return;
 	}
 
-	uint32_t n = 0;
-	Memblock block;
+	uint32_t n = 0, numBlocks = 0;
+	Memblock blocks[8];
+
 	while (true) {
-		m_buffer->take(&block);
-		if (check(block.data, block.length)) {
-			Attack::phraseFound(block);
+		numBlocks = m_buffer->taken(8, blocks);
+
+		for (uint32_t i = 0; i < numBlocks; i++) {
+			if (check(blocks[i].data, blocks[i].length)) {
+				Attack::phraseFound(blocks[i]);
+			}
 		}
 
 		// Avoid constant status querying

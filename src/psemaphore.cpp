@@ -12,12 +12,15 @@
 
 // Constructor
 Semaphore::Semaphore(uint32_t n)
+	: m_avail(n)
 {
-	sem_init(&m_sem, 0, n);
+	pthread_mutex_init(&m_mutex, NULL);
+	pthread_cond_init(&m_cond, NULL);
 }
 
 // Destructor
 Semaphore::~Semaphore()
 {
-	sem_destroy(&m_sem);
+	pthread_mutex_destroy(&m_mutex);
+	pthread_cond_destroy(&m_cond);
 }
