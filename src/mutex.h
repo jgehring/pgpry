@@ -16,6 +16,8 @@
 
 class Mutex
 {
+	friend class WaitCondition;
+
 	public:
 		Mutex();
 		~Mutex();

@@ -6,6 +6,7 @@
 bin_PROGRAMS = pgpry
 
 pgpry_SOURCES = \
+	attack.h attack.cpp \
 	buffer.h buffer.cpp \
 	cryptutils.h cryptutils.cpp \
 	key.h key.cpp \
@@ -21,6 +22,7 @@ pgpry_SOURCES = \
 	string2key.h string2key.cpp \
 	thread.h thread.cpp \
 	utils.h utils.cpp \
+	waitcondition.h waitcondition.cpp \
 	watch.h watch.cpp \
 	\
 	guessers/guessers.h guessers/guessers.cpp \

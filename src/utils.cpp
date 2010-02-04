@@ -144,7 +144,7 @@ std::string defaultOption(const std::map<std::string, std::string> &options, con
 // Returns an option from the given map or a default value
 int32_t defaultOption(const std::map<std::string, std::string> &options, const std::string name, int32_t def)
 {
-	int32_t i;
+	int32_t i = 0;
 	if (str2int(defaultOption(options, name, int2str(def)), &i)) {
 		return i;
 	} else {

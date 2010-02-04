@@ -9,6 +9,7 @@
 
 #include <iostream>
 
+#include "attack.h"
 #include "buffer.h"
 #include "watch.h"
 
@@ -54,6 +55,13 @@ void Guesser::run()
 			std::cout << "Phrase: " << block.data << std::endl;
 			watch.start();
 			n = 0;
+		}
+
+		// Avoid constant status querying
+		if (!(n & 0x7F)) {
+			if (Attack::successful()) {
+				break;
+			}
 		}
 	}
 }

@@ -11,6 +11,7 @@
 #include <cstring>
 #include <iostream>
 
+#include "attack.h"
 #include "buffer.h"
 #include "string2key.h"
 
@@ -37,12 +38,20 @@ void Cracker::run()
 		return;
 	}
 
+	uint32_t n = 0;
 	Memblock block;
 	while (true) {
 		m_buffer->take(&block);
 		if (check(block.data, block.length)) {
-			std::cout << "FOUND PASSPHRASE: " << block.data << std::endl;
-			break;
+			Attack::phraseFound(block);
+		}
+
+		// Avoid constant status querying
+		if (++n > 128) {
+			if (Attack::successful()) {
+				break;
+			}
+			n = 0;
 		}
 	}
 }
