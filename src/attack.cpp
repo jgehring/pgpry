@@ -56,8 +56,8 @@ int32_t Attack::run(const Key &key, const Options &options)
 	}
 
 	// Now all we've got to do is wait
-	Mutex condMutex;
-	Attack::m_condition.wait(&condMutex);
+	Attack::m_mutex.lock();
+	Attack::m_condition.wait(&Attack::m_mutex);
 
 	Attack::m_mutex.lock();
 	if (Attack::m_success) {
@@ -85,10 +85,10 @@ void Attack::phraseFound(const Memblock &mblock)
 
 	Attack::m_mutex.lock();
 	Attack::m_success = true;
-	Attack::m_mutex.unlock();
 
 	Attack::m_phrase = mblock;
-	m_condition.wake();
+	Attack::m_condition.wake();
+	Attack::m_mutex.unlock();
 }
 
 // Sets up the pass phrases guessers
