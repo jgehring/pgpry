@@ -32,6 +32,9 @@ class Options
 		const std::string &guesser() const;
 		const std::map<std::string, std::string> &guesserOptions() const;
 		uint32_t numCrackers() const;
+        bool useRegexFiltering() const;
+        const std::string &regexFile() const;
+        uint32_t numRegexFilters() const;
 
 	private:
 		void reset();
@@ -43,6 +46,8 @@ class Options
 		std::string m_guesser;
 		std::map<std::string, std::string> m_guesserOptions;
 		uint32_t m_numCrackers;
+        std::string m_regexFile;
+        uint32_t m_numRegexFilters;
 };
 
 

@@ -3,7 +3,7 @@
  * Copyright (C) 2010 Jonas Gehring
  *
  * file: regexfilter.h
- * Buffer filtering withregular expressions
+ * Buffer filtering with regular expressions
  */
 
 

@@ -46,14 +46,22 @@ void Options::parse(int argc, char **argv)
 		} else if (a == "-o" || a == "--options") {
 			gopts = true;
 		} else if (a == "-j" && i < argc-1) {
-			uint32_t t;
-			if (Utils::str2int(argv[++i], &t)) {
-				m_numCrackers = t;
+			if (!Utils::str2int(argv[++i], &m_numCrackers)) {
+                throw Utils::strprintf("Number expected (got %s)", argv[i]);
 			}
 		} else if (!a.compare(0, 7, "--jobs=")) {
-			uint32_t t;
-			if (Utils::str2int(a.substr(7), &t)) {
-				m_numCrackers = t;
+			if (!Utils::str2int(a.substr(7), &m_numCrackers)) {
+                throw Utils::strprintf("Number expected (got %s)", a.substr(7).c_str());
+			}
+        } else if (!a.compare(0, 10, "--regexes=")) {
+            m_regexFile = a.substr(10);
+        } else if (a == "-r" && i < argc-1) {
+            if (!Utils::str2int(argv[++i], &m_numRegexFilters)) {
+                throw Utils::strprintf("Number expected (got %s)", argv[i]);
+            }
+        } else if (!a.compare(0, 13, "--regex-jobs=")) {
+			if (!Utils::str2int(a.substr(13), &m_numRegexFilters)) {
+                throw Utils::strprintf("Number expected (got %s)", a.substr(13).c_str());
 			}
 		} else {
 			throw Utils::strprintf("Unkown argument %s", argv[i]);
@@ -67,12 +75,14 @@ void Options::printHelp()
 	std::cout << "USAGE: " << PACKAGE_NAME << " [options]" << std::endl;
 	std::cout << std::endl;
 	std::cout << "Valid options:" << std::endl;
-	printOption("-h, --help, -?", "Output usage information");
+	printOption("-h, --help, -?", "Output basic usage information");
 	printOption("--version", "Output version information");
 	printOption("-g METHOD, --guesser=METHOD", "Use METHOD for guessing phrases");
-	printOption("-o OPTION1=VALUE1 OPTION2=VALUE2 ..., --options OPTION1=VALUE1 ...", "Set guessing options (name-value pairs)");
 	printOption("-l, --list-guessers", "List available guessing methods");
+	printOption("-o OPTION1=VALUE1 OPTION2=VALUE2 ..., --options OPTION1=VALUE1 ...", "Set guessing options (name-value pairs)");
+    printOption("--regexes=FILE", "Read regular expressions from FILE");
 	printOption("-j N, --jobs=N", "Use N cracker (phrase testing) jobs");
+    printOption("-r N, --regex-jobs=N", "Use N regular expression filtering jobs");
 	std::cout << std::endl;
 	std::cout << "The key data will be read from stdin." << std::endl;
 	std::cout << std::endl;
@@ -113,6 +123,21 @@ uint32_t Options::numCrackers() const
 	return m_numCrackers;
 }
 
+bool Options::useRegexFiltering() const
+{
+    return !m_regexFile.empty();
+}
+
+const std::string &Options::regexFile() const
+{
+    return m_regexFile;
+}
+
+uint32_t Options::numRegexFilters() const
+{
+    return m_numRegexFilters;
+}
+
 // Sets default values
 void Options::reset()
 {
@@ -121,6 +146,8 @@ void Options::reset()
 	m_guesser = "incremental";
 	m_guesserOptions.clear();
 	m_numCrackers = 1;
+    m_regexFile = std::string();
+    m_numRegexFilters = 1;
 }
 
 // Utility function for printing a help screen option

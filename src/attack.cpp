@@ -15,6 +15,7 @@
 #include "guessers.h"
 #include "key.h"
 #include "options.h"
+#include "regexfilter.h"
 
 #include "attack.h"
 
@@ -23,6 +24,7 @@
 Key Attack::m_key;
 Memblock Attack::m_phrase;
 std::vector<Guessers::Guesser *> Attack::m_guessers;
+std::vector<RegexFilter *> Attack::m_regexFilters;
 std::vector<Crackers::Cracker *> Attack::m_crackers;
 bool Attack::m_success = false;
 Mutex Attack::m_mutex;
@@ -36,23 +38,31 @@ int32_t Attack::run(const Key &key, const Options &options)
 	Attack::m_success = false;
 
 	// Setup threads
-	Buffer buffer;
+	Buffer buffer, buffer2;
 	m_guessers = setupGuessers(&buffer, options);
 	if (m_guessers.empty()) {
 		return EXIT_FAILURE;
 	}
 
-	m_crackers = setupCrackers(key, &buffer, options);
+    if (options.useRegexFiltering()) {
+        m_regexFilters = setupRegexFilters(&buffer, &buffer2, options);
+        m_crackers = setupCrackers(key, &buffer2, options);
+    } else {
+        m_crackers = setupCrackers(key, &buffer, options);
+    }
 	if (m_crackers.empty()) {
 		return EXIT_FAILURE;
 	}
 
 	// Start threads 
-	for (uint32_t i = 0; i < m_crackers.size(); i++) {
-		m_crackers[i]->start();
-	}
 	for (uint32_t i = 0; i < m_guessers.size(); i++) {
 		m_guessers[i]->start();
+	}
+	for (uint32_t i = 0; i < m_regexFilters.size(); i++) {
+		m_regexFilters[i]->start();
+	}
+	for (uint32_t i = 0; i < m_crackers.size(); i++) {
+		m_crackers[i]->start();
 	}
 
 	// Now all we've got to do is wait
@@ -70,6 +80,9 @@ int32_t Attack::run(const Key &key, const Options &options)
 	// Wait for threads
 	for (uint32_t i = 0; i < m_crackers.size(); i++) {
 		m_crackers[i]->wait();
+	}
+	for (uint32_t i = 0; i < m_regexFilters.size(); i++) {
+		m_regexFilters[i]->wait();
 	}
 	for (uint32_t i = 0; i < m_guessers.size(); i++) {
 		m_guessers[i]->wait();
@@ -101,6 +114,20 @@ std::vector<Guessers::Guesser *> Attack::setupGuessers(Buffer *out, const Option
 		guessers.push_back(g);
 	}
 	return guessers;
+}
+
+// Sets up the regular expression filters
+std::vector<RegexFilter *> Attack::setupRegexFilters(Buffer *in, Buffer *out, const Options &options)
+{
+    std::vector<RegexFilter *> filters;
+	for (uint32_t i = 0; i < options.numRegexFilters(); i++) {
+        RegexFilter *r = new RegexFilter(in, out);
+        if (!r->readExpressions(options.regexFile())) {
+            break;
+        }
+        filters.push_back(r);
+    }
+    return filters;
 }
 
 // Sets up the pass phrase testers

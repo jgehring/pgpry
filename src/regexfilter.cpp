@@ -3,13 +3,14 @@
  * Copyright (C) 2010 Jonas Gehring
  *
  * file: regexfilter.cpp
- * Buffer filtering withregular expressions
+ * Buffer filtering with regular expressions
  */
 
 
 #include <fstream>
 #include <iostream>
 
+#include "attack.h"
 #include "buffer.h"
 
 #include "regexfilter.h"
@@ -66,6 +67,7 @@ void RegexFilter::run()
 {
 	Memblock m;
 	std::vector<PRegex>::const_iterator it;
+    uint32_t n = 0;
 	bool valid;
 	while (true) {
 		m_in->take(&m);
@@ -86,6 +88,14 @@ void RegexFilter::run()
 
 		if (valid) {
 			m_out->put(m);
+		}
+
+		// Avoid constant status querying
+		if (++n > 128) {
+			if (Attack::successful()) {
+				break;
+			}
+			n = 0;
 		}
 	}
 }

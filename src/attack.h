@@ -22,6 +22,7 @@
 
 class Buffer;
 class Options;
+class RegexFilter;
 namespace Crackers {
 	class Cracker;
 }
@@ -40,12 +41,14 @@ class Attack
 
 	private:
 		static std::vector<Guessers::Guesser *> setupGuessers(Buffer *out, const Options &options);
+        static std::vector<RegexFilter *> setupRegexFilters(Buffer *in, Buffer *out, const Options &options);
 		static std::vector<Crackers::Cracker *> setupCrackers(const Key &key, Buffer *in, const Options &options);
 
 	private:
 		static Key m_key;
 		static Memblock m_phrase;
 		static std::vector<Guessers::Guesser *> m_guessers;
+        static std::vector<RegexFilter *> m_regexFilters;
 		static std::vector<Crackers::Cracker *> m_crackers;
 		static bool m_success;
 		static Mutex m_mutex;
