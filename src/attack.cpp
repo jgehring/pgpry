@@ -107,12 +107,15 @@ std::vector<Guessers::Guesser *> Attack::setupGuessers(Buffer *out, const Option
 std::vector<Crackers::Cracker *> Attack::setupCrackers(const Key &key, Buffer *in, const Options &options)
 {
 	std::vector<Crackers::Cracker *> crackers;
-	Crackers::Cracker *c = Crackers::crackerFor(key, in);
-	if (c) {
-		crackers.push_back(c);
-	} else {
-		std::cerr << "Error: Unsupported hash or cipher algorithm" << std::endl;
-		std::cerr << (int)key.string2Key().hashAlgorithm() << std::endl;
+	for (uint32_t i = 0; i < options.numCrackers(); i++) {
+		Crackers::Cracker *c = Crackers::crackerFor(key, in);
+		if (c) {
+			crackers.push_back(c);
+		} else {
+			std::cerr << "Error: Unsupported hash or cipher algorithm" << std::endl;
+			std::cerr << (int)key.string2Key().hashAlgorithm() << std::endl;
+			break;
+		}
 	}
 	return crackers;
 }

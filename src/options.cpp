@@ -45,6 +45,16 @@ void Options::parse(int argc, char **argv)
 			m_guesser = a.substr(10);
 		} else if (a == "-o" || a == "--options") {
 			gopts = true;
+		} else if (a == "-j" && i < argc-1) {
+			uint32_t t;
+			if (Utils::str2int(argv[++i], &t)) {
+				m_numCrackers = t;
+			}
+		} else if (!a.compare(0, 7, "--jobs=")) {
+			uint32_t t;
+			if (Utils::str2int(a.substr(7), &t)) {
+				m_numCrackers = t;
+			}
 		} else {
 			throw Utils::strprintf("Unkown argument %s", argv[i]);
 		}
@@ -62,6 +72,7 @@ void Options::printHelp()
 	printOption("-g METHOD, --guesser=METHOD", "Use METHOD for guessing phrases");
 	printOption("-o OPTION1=VALUE1 OPTION2=VALUE2 ..., --options OPTION1=VALUE1 ...", "Set guessing options (name-value pairs)");
 	printOption("-l, --list-guessers", "List available guessing methods");
+	printOption("-j N, --jobs=N", "Use N cracker (phrase testing) jobs");
 	std::cout << std::endl;
 	std::cout << "The key data will be read from stdin." << std::endl;
 	std::cout << std::endl;
@@ -97,6 +108,11 @@ const std::map<std::string, std::string> &Options::guesserOptions() const
 	return m_guesserOptions;
 }
 
+uint32_t Options::numCrackers() const
+{
+	return m_numCrackers;
+}
+
 // Sets default values
 void Options::reset()
 {
@@ -104,6 +120,7 @@ void Options::reset()
 	m_version = false;
 	m_guesser = "incremental";
 	m_guesserOptions.clear();
+	m_numCrackers = 1;
 }
 
 // Utility function for printing a help screen option

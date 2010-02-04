@@ -31,6 +31,7 @@ class Options
 		bool versionRequested() const;
 		const std::string &guesser() const;
 		const std::map<std::string, std::string> &guesserOptions() const;
+		uint32_t numCrackers() const;
 
 	private:
 		void reset();
@@ -41,6 +42,7 @@ class Options
 		bool m_version;
 		std::string m_guesser;
 		std::map<std::string, std::string> m_guesserOptions;
+		uint32_t m_numCrackers;
 };
 
 
