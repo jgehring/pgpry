@@ -14,7 +14,7 @@
 #include <map>
 #include <string>
 
-#include "thread.h"
+#include "threads.h"
 
 class Buffer;
 class Memblock;
@@ -23,7 +23,7 @@ class Memblock;
 namespace Guessers
 {
 
-class Guesser : public Thread
+class Guesser : public SysUtils::Thread
 {
 	public:
 		Guesser(Buffer *buffer);

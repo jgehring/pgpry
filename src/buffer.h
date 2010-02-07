@@ -12,8 +12,7 @@
 
 
 #include "memblock.h"
-#include "mutex.h"
-#include "psemaphore.h"
+#include "threads.h"
 
 
 class Buffer
@@ -34,9 +33,9 @@ class Buffer
 		uint32_t m_size;
 		Memblock *m_start, *m_end;
 
-		Mutex m_mutex;
-		Semaphore m_used;
-		Semaphore m_free;
+		SysUtils::Mutex m_mutex;
+		SysUtils::Semaphore m_used;
+		SysUtils::Semaphore m_free;
 };
 
 

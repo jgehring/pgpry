@@ -2,16 +2,19 @@
  * pgpry alpha - PGP private key password recovery
  * Copyright (C) 2010 Jonas Gehring
  *
- * file: pregex.cpp
- * Simple regular expression class using POSIX regex
+ * file: sysutils/sysutils.cpp
+ * Various system utilities and wrapper classes
  */
 
 
-#include "pregex.h"
+#include "sysutils.h"
 
+
+namespace SysUtils
+{
 
 // Constructor
-PRegex::PRegex(const std::string &pattern)
+Regex::Regex(const std::string &pattern)
 	: m_pattern(pattern)
 {
 	// No support for extended regexes yet (may be added if needed)
@@ -22,19 +25,19 @@ PRegex::PRegex(const std::string &pattern)
 }
 
 // Copy constructor
-PRegex::PRegex(const PRegex &other)
+Regex::Regex(const Regex &other)
 {
 	*this = other;
 }
 
 // Destructor
-PRegex::~PRegex()
+Regex::~Regex()
 {
 	regfree(&m_rx);
 }
 
 // Assignment operator
-PRegex &PRegex::operator=(const PRegex &other)
+Regex &Regex::operator=(const Regex &other)
 {
 	if (!m_pattern.empty()) {
 		regfree(&m_rx);
@@ -48,10 +51,12 @@ PRegex &PRegex::operator=(const PRegex &other)
 	return *this;
 }
 
-// Wrapper for
-std::string PRegex::errorString(int32_t error)
+// Wrapper for regerror()
+std::string Regex::errorString(int32_t error)
 {
 	char buf[128];
 	regerror(error, &m_rx, buf, 128);
 	return std::string(buf, 128);
 }
+
+} // namespace SysUtils

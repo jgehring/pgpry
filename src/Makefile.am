@@ -12,17 +12,12 @@ pgpry_SOURCES = \
 	key.h key.cpp \
 	main.h main.cpp \
 	memblock.h \
-	mutex.h mutex.cpp \
 	options.h options.cpp \
 	packetheader.h packetheader.cpp \
 	pistream.h pistream.cpp \
-	pregex.h pregex.cpp \
-	psemaphore.h psemaphore.cpp \
 	regexfilter.h regexfilter.cpp \
 	string2key.h string2key.cpp \
-	thread.h thread.cpp \
 	utils.h utils.cpp \
-	waitcondition.h waitcondition.cpp \
 	watch.h watch.cpp \
 	\
 	guessers/guessers.h guessers/guessers.cpp \
@@ -30,7 +25,10 @@ pgpry_SOURCES = \
 	guessers/incguesser.h guessers/incguesser.cpp \
 	\
 	crackers/crackers.h crackers/crackers.cpp \
-	crackers/cast5crackers.h crackers/cast5crackers.cpp 
+	crackers/cast5crackers.h crackers/cast5crackers.cpp \
+	\
+	sysutils/sysutils.h sysutils/sysutils.cpp \
+	sysutils/threads.h sysutils/threads.cpp
 
 
 CC = $(PTHREAD_CC)
@@ -38,6 +36,7 @@ CC = $(PTHREAD_CC)
 INCLUDES = \
 	-Iguessers \
 	-Icrackers \
+	-Isysutils \
 	$(OPENSSL_INCLUDES)
 
 AM_CXXFLAGS = \

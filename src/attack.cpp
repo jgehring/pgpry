@@ -27,8 +27,8 @@ std::vector<Guessers::Guesser *> Attack::m_guessers;
 std::vector<RegexFilter *> Attack::m_regexFilters;
 std::vector<Crackers::Cracker *> Attack::m_crackers;
 bool Attack::m_success = false;
-Mutex Attack::m_mutex;
-WaitCondition Attack::m_condition;
+SysUtils::Mutex Attack::m_mutex;
+SysUtils::WaitCondition Attack::m_condition;
 
 
 // Performs the brute-force attack

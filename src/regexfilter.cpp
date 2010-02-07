@@ -18,7 +18,7 @@
 
 // Constructor
 RegexFilter::RegexFilter(Buffer *in, Buffer *out)
-	: m_in(in), m_out(out)
+	: Thread(), m_in(in), m_out(out)
 {
 
 }
@@ -40,7 +40,7 @@ bool RegexFilter::readExpressions(const std::string &file)
 			continue;
 		}
 
-		std::vector<PRegex> *vptr;
+		std::vector<SysUtils::Regex> *vptr;
 		if (str.substr(0, 2) == "+ ") {
 			vptr = &m_posrx;
 		} else if (str.substr(0, 2) == "- ") {
@@ -66,7 +66,7 @@ bool RegexFilter::readExpressions(const std::string &file)
 void RegexFilter::run()
 {
 	Memblock m;
-	std::vector<PRegex>::const_iterator it;
+	std::vector<SysUtils::Regex>::const_iterator it;
     uint32_t n = 0;
 	bool valid;
 	while (true) {

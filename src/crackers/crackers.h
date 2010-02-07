@@ -12,10 +12,7 @@
 
 
 #include "key.h"
-#include "thread.h"
-
-#include "charsetguesser.h"
-#include "incguesser.h"
+#include "threads.h"
 
 class Buffer;
 
@@ -23,7 +20,7 @@ class Buffer;
 namespace Crackers
 {
 
-class Cracker : public Thread
+class Cracker : public SysUtils::Thread
 {
 	public:
 		Cracker(const Key &key, Buffer *buffer);

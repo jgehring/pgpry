@@ -16,9 +16,8 @@
 #include <vector>
 
 #include "key.h"
-#include "mutex.h"
-#include "waitcondition.h"
 #include "memblock.h"
+#include "threads.h"
 
 class Buffer;
 class Options;
@@ -51,8 +50,8 @@ class Attack
         static std::vector<RegexFilter *> m_regexFilters;
 		static std::vector<Crackers::Cracker *> m_crackers;
 		static bool m_success;
-		static Mutex m_mutex;
-		static WaitCondition m_condition;
+		static SysUtils::Mutex m_mutex;
+		static SysUtils::WaitCondition m_condition;
 };
 
 

@@ -13,14 +13,14 @@
 
 #include <vector>
 
-#include "thread.h"
+#include "sysutils.h"
+#include "threads.h"
 
-#include "pregex.h"
 
 class Buffer;
 
 
-class RegexFilter : public Thread
+class RegexFilter : public SysUtils::Thread
 {
 	public:
 		RegexFilter(Buffer *in, Buffer *out);
@@ -33,8 +33,8 @@ class RegexFilter : public Thread
 	private:
 		Buffer *m_in;
 		Buffer *m_out;
-		std::vector<PRegex> m_posrx;
-		std::vector<PRegex> m_negrx;
+		std::vector<SysUtils::Regex> m_posrx;
+		std::vector<SysUtils::Regex> m_negrx;
 };
 
 
