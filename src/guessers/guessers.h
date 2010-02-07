@@ -11,6 +11,8 @@
 #define GUESSERS_H_
 
 
+#include "main.h"
+
 #include <map>
 #include <string>
 

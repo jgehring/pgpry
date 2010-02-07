@@ -45,15 +45,23 @@ void Cracker::run()
 		numBlocks = m_buffer->taken(8, blocks);
 
 		for (uint32_t i = 0; i < numBlocks; i++) {
-			if (check(blocks[i].data, blocks[i].length)) {
+			if (blocks[i].length > 0 && check(blocks[i].data, blocks[i].length)) {
 				Attack::phraseFound(blocks[i]);
 			}
 		}
 
 		// Avoid constant status querying
 		if (++n > 128) {
-			if (Attack::successful()) {
-				break;
+			switch (Attack::status()) {
+				case Attack::STATUS_SUCCESS:
+					return;
+				case Attack::STATUS_FAILURE:
+					if (blocks[0].length == 0) {
+						return;
+					}
+					break;
+				default:
+					break;
 			}
 			n = 0;
 		}

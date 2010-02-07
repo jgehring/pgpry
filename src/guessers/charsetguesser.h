@@ -11,8 +11,6 @@
 #define CHARSETGUESSER_H_
 
 
-#include "main.h"
-
 #include "guessers.h"
 
 

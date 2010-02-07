@@ -23,10 +23,11 @@
 // Static variables
 Key Attack::m_key;
 Memblock Attack::m_phrase;
+Buffer *Attack::m_buffer = NULL;
 std::vector<Guessers::Guesser *> Attack::m_guessers;
 std::vector<RegexFilter *> Attack::m_regexFilters;
 std::vector<Crackers::Cracker *> Attack::m_crackers;
-bool Attack::m_success = false;
+Attack::Status Attack::m_status;
 SysUtils::Mutex Attack::m_mutex;
 SysUtils::WaitCondition Attack::m_condition;
 
@@ -35,7 +36,7 @@ SysUtils::WaitCondition Attack::m_condition;
 int32_t Attack::run(const Key &key, const Options &options)
 {
 	Attack::m_key = key;
-	Attack::m_success = false;
+	Attack::m_status = STATUS_RUNNING;
 
 	// Setup threads
 	Buffer buffer, buffer2;
@@ -54,6 +55,7 @@ int32_t Attack::run(const Key &key, const Options &options)
 		return EXIT_FAILURE;
 	}
 
+	Attack::m_buffer = &buffer;
 	Attack::m_mutex.lock();
 
 	// Start threads 
@@ -70,7 +72,7 @@ int32_t Attack::run(const Key &key, const Options &options)
 	// Now all we've got to do is wait
 	Attack::m_condition.wait(&Attack::m_mutex);
 
-	if (Attack::m_success) {
+	if (Attack::m_status == STATUS_SUCCESS) {
 		std::cout << "SUCCESS: Found pass phrase: '" << m_phrase.data << "'." << std::endl;
 	} else {
 		std::cout << "SORRY, the key space is exhausted. The attack failed." << std::endl;
@@ -98,9 +100,28 @@ void Attack::phraseFound(const Memblock &mblock)
 	// TODO: Check the solution once more by trying to unlock the key
 
 	Attack::m_mutex.lock();
-	Attack::m_success = true;
+	Attack::m_status = STATUS_SUCCESS;
 
 	Attack::m_phrase = mblock;
+	Attack::m_condition.wakeAll();
+	Attack::m_mutex.unlock();
+}
+
+// Called by a guesser if it's out of phrases
+void Attack::exhausted()
+{
+	Attack::m_mutex.lock();
+	Attack::m_status = STATUS_FAILURE;
+	Attack::m_mutex.unlock();
+
+	// Insert empty memory blocks into the buffer. The cracker thread will finish
+	// if the attack status isn't RUNNING and it received an empty memory block from the buffer
+	uint32_t n = Attack::m_buffer->size();
+	for (uint32_t i = 0; i < n; i++) {
+		Attack::m_buffer->put(Memblock());
+	}
+
+	Attack::m_mutex.lock();
 	Attack::m_condition.wakeAll();
 	Attack::m_mutex.unlock();
 }

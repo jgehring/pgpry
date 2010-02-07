@@ -15,6 +15,7 @@
 
 #include "guessers.h"
 
+#include "dictguesser.h"
 #include "incguesser.h"
 #include "randomguesser.h"
 
@@ -69,9 +70,14 @@ void Guesser::run()
 			n = 0;
 		}
 
+		if (numBlocks != 8) {
+			Attack::exhausted();
+			break;
+		}
+
 		// Avoid constant status querying
 		if (!(n & 0x7F)) {
-			if (Attack::successful()) {
+			if (Attack::status() != Attack::STATUS_RUNNING) {
 				break;
 			}
 		}
@@ -92,6 +98,8 @@ Guesser *guesser(const std::string &name, Buffer *buffer)
 		return new IncrementalGuesser(buffer);
 	} else if (name == "random") {
 		return new RandomGuesser(buffer);
+	} else if (name == "dictionary") {
+		return new DictionaryGuesser(buffer);
 	}
 	return NULL;
 }

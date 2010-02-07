@@ -33,10 +33,20 @@ namespace Guessers {
 class Attack
 {
 	public:
+		enum Status
+		{
+			STATUS_RUNNING = 0,
+			STATUS_SUCCESS = 1,
+			STATUS_FAILURE = 2
+		};
+
+	public:
 		static int32_t run(const Key &key, const Options &options);
 
 		static void phraseFound(const Memblock &mblock);
-		static bool successful();
+		static void exhausted();
+
+		static Status status();
 
 	private:
 		static std::vector<Guessers::Guesser *> setupGuessers(Buffer *out, const Options &options);
@@ -46,23 +56,24 @@ class Attack
 	private:
 		static Key m_key;
 		static Memblock m_phrase;
+		static Buffer *m_buffer;
 		static std::vector<Guessers::Guesser *> m_guessers;
         static std::vector<RegexFilter *> m_regexFilters;
 		static std::vector<Crackers::Cracker *> m_crackers;
-		static bool m_success;
+		static Status m_status;
 		static SysUtils::Mutex m_mutex;
 		static SysUtils::WaitCondition m_condition;
 };
 
 
 // Inlined functions
-inline bool Attack::successful()
+inline Attack::Status Attack::status()
 {
-	bool success;
+	Status status;
 	Attack::m_mutex.lock();
-	success = Attack::m_success;
+	status = Attack::m_status;
 	Attack::m_mutex.unlock();
-	return success;
+	return status;
 }
 
 

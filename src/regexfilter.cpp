@@ -92,8 +92,16 @@ void RegexFilter::run()
 
 		// Avoid constant status querying
 		if (++n > 128) {
-			if (Attack::successful()) {
-				break;
+			switch (Attack::status()) {
+				case Attack::STATUS_SUCCESS:
+					return;
+				case Attack::STATUS_FAILURE:
+					if (m.length == 0) {
+						return;
+					}
+					break;
+				default:
+					break;
 			}
 			n = 0;
 		}
