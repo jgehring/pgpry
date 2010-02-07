@@ -140,7 +140,7 @@ std::vector<Crackers::Cracker *> Attack::setupCrackers(const Key &key, Buffer *i
 		if (c) {
 			crackers.push_back(c);
 		} else {
-			std::cerr << "Error: Unsupported hash or cipher algorithm" << std::endl;
+			std::cerr << "Error: Unsupported hash or cipher algorithm: ";
 			std::cerr << (int)key.string2Key().hashAlgorithm() << std::endl;
 			break;
 		}

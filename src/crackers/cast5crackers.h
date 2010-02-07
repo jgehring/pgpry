@@ -17,21 +17,11 @@
 namespace Crackers
 {
 
-class Cast5MD5Cracker : public Cracker
+class Cast5Cracker : public Cracker
 {
 	public:
-		Cast5MD5Cracker(const Key &key, Buffer *buffer);
-
-//	protected:
-//		bool check(const uint8_t *password, uint32_t length);
-};
-
-
-class Cast5SHA1Cracker : public Cracker
-{
-	public:
-		Cast5SHA1Cracker(const Key &key, Buffer *buffer);
-		~Cast5SHA1Cracker();
+		Cast5Cracker(const Key &key, Buffer *buffer);
+		~Cast5Cracker();
 
 	protected:
 		bool init();
@@ -39,7 +29,8 @@ class Cast5SHA1Cracker : public Cracker
 
 	private:
 		uint8_t *m_keybuf;
-		uint8_t m_keydata[20];
+		uint8_t *m_keydata;
+		uint32_t m_keylen;
 		uint8_t m_iv[8];
 
 		uint32_t m_datalen;
