@@ -75,7 +75,7 @@ void CharsetGuesser::setup(const std::map<std::string, std::string> &options)
 // Initializes the guesser
 bool CharsetGuesser::init()
 {
-	return (m_charset != NULL && m_minlength < m_maxlength);
+	return (m_charset != NULL && m_minlength <= m_maxlength);
 }
 
 } // namespace Guessers

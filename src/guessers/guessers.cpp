@@ -16,6 +16,7 @@
 #include "guessers.h"
 
 #include "incguesser.h"
+#include "randomguesser.h"
 
 
 namespace Guessers
@@ -59,7 +60,11 @@ void Guesser::run()
 
 		if (watch.elapsed() > 2000) {
 			std::cout << "Rate: " << 1000 * (double)n/watch.elapsed() << " phrases / second. ";
-			std::cout << "Phrase: " << blocks[numBlocks-1].data << std::endl;
+			std::cout << "Phrase: ";
+			for (uint32_t i = 0; i < blocks[numBlocks-1].length; i++) {
+				std::cout << (char)blocks[numBlocks-1].data[i];
+			}
+			std::cout << std::endl;
 			watch.start();
 			n = 0;
 		}
@@ -80,12 +85,13 @@ bool Guesser::init()
 	return true;
 }
 
-
 // Returns a guesser using the given name
 Guesser *guesser(const std::string &name, Buffer *buffer)
 {
 	if (name == "incremental") {
 		return new IncrementalGuesser(buffer);
+	} else if (name == "random") {
+		return new RandomGuesser(buffer);
 	}
 	return NULL;
 }

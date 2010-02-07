@@ -23,6 +23,7 @@ pgpry_SOURCES = \
 	guessers/guessers.h guessers/guessers.cpp \
 	guessers/charsteguesser.h guessers/charsetguesser.cpp \
 	guessers/incguesser.h guessers/incguesser.cpp \
+	guessers/randomguesser.h guessers/randomguesser.cpp \
 	\
 	crackers/crackers.h crackers/crackers.cpp \
 	crackers/cast5crackers.h crackers/cast5crackers.cpp \
