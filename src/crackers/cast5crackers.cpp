@@ -109,7 +109,7 @@ bool Cast5SHA1Cracker::check(const uint8_t *password, uint32_t length)
 	CAST_set_key(&ck, 20, m_keydata);
 
 	memcpy(m_iv, s2k.ivec(), 8);
-	int32_t tmp;
+	int32_t tmp = 0;
 
 	// Decrypt first block in order to check the first two bits of the MPI.
 	// If they are correct, there's a good chance that the password is right.
@@ -119,7 +119,8 @@ bool Cast5SHA1Cracker::check(const uint8_t *password, uint32_t length)
 		return false;
 	}
 
-	// Setup the decryption parameters
+	// Decrypt all data
+	tmp = 0;
 	memcpy(m_iv, s2k.ivec(), 8);
 	CAST_cfb64_encrypt(m_in, m_out, m_datalen, &ck, m_iv, &tmp, CAST_DECRYPT);
 

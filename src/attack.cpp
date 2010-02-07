@@ -54,6 +54,8 @@ int32_t Attack::run(const Key &key, const Options &options)
 		return EXIT_FAILURE;
 	}
 
+	Attack::m_mutex.lock();
+
 	// Start threads 
 	for (uint32_t i = 0; i < m_guessers.size(); i++) {
 		m_guessers[i]->start();
@@ -66,15 +68,14 @@ int32_t Attack::run(const Key &key, const Options &options)
 	}
 
 	// Now all we've got to do is wait
-	Attack::m_mutex.lock();
 	Attack::m_condition.wait(&Attack::m_mutex);
 
-	Attack::m_mutex.lock();
 	if (Attack::m_success) {
 		std::cout << "SUCCESS: Found pass phrase: '" << m_phrase.data << "'." << std::endl;
 	} else {
 		std::cout << "SORRY, the key space is exhausted. The attack failed." << std::endl;
 	}
+
 	Attack::m_mutex.unlock();
 
 	// Wait for threads
@@ -100,7 +101,7 @@ void Attack::phraseFound(const Memblock &mblock)
 	Attack::m_success = true;
 
 	Attack::m_phrase = mblock;
-	Attack::m_condition.wake();
+	Attack::m_condition.wakeAll();
 	Attack::m_mutex.unlock();
 }
 
