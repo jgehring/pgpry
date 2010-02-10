@@ -29,7 +29,9 @@ pgpry_SOURCES = \
 	crackers/cast5crackers.h crackers/cast5crackers.cpp \
 	\
 	sysutils/sysutils.h sysutils/sysutils.cpp \
-	sysutils/threads.h sysutils/threads.cpp
+	sysutils/threads.h sysutils/threads.cpp \
+	\
+	3rdparty/block-sha1/sha1.h 3rdparty/block-sha1/sha1.cpp
 
 
 CC = $(PTHREAD_CC)
