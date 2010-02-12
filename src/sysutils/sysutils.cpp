@@ -59,4 +59,17 @@ std::string Regex::errorString(int32_t error)
 	return std::string(buf, 128);
 }
 
+
+// Constructor
+Watch::Watch()
+{
+	start();
+}
+
+// Starts the stop watch
+void Watch::start()
+{
+	gettimeofday(&m_tv, NULL);
+}
+
 } // namespace SysUtils

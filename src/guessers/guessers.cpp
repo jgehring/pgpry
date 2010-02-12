@@ -11,7 +11,7 @@
 
 #include "attack.h"
 #include "buffer.h"
-#include "watch.h"
+#include "sysutils.h"
 
 #include "guessers.h"
 
@@ -44,7 +44,7 @@ void Guesser::run()
 		return;
 	}
 
-	Watch watch;
+    SysUtils::Watch watch;
 	uint32_t n = 0, numBlocks = 0;
 
 	Memblock blocks[8];

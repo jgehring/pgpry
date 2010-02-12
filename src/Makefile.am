@@ -18,7 +18,6 @@ pgpry_SOURCES = \
 	regexfilter.h regexfilter.cpp \
 	string2key.h string2key.cpp \
 	utils.h utils.cpp \
-	watch.h watch.cpp \
 	\
 	guessers/guessers.h guessers/guessers.cpp \
 	guessers/charsteguesser.h guessers/charsetguesser.cpp \

@@ -16,6 +16,7 @@
 #include <string>
 
 #include <regex.h>
+#include <sys/time.h>
 
 #include "memblock.h"
 
@@ -45,6 +46,23 @@ class Regex
 	private:
 		regex_t m_rx;
 		std::string m_pattern;
+};
+
+
+class Watch
+{
+	public:
+		Watch();
+
+		void start();
+		uint32_t elapsed() const {
+			timeval c;
+			gettimeofday(&c, NULL);	
+ 			return (c.tv_sec - m_tv.tv_sec) * 1000 + (c.tv_usec - m_tv.tv_usec) / 1000;
+ 		}
+
+	private:
+		timeval m_tv;
 };
 
 } // namespace SysUtils
