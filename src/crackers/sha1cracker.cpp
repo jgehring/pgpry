@@ -32,6 +32,9 @@
 #include "sha1cracker.h"
 
 
+#define KEYBUFFER_LENGTH 8192
+
+
 namespace Crackers
 {
 
@@ -57,11 +60,9 @@ bool SHA1Cracker::init()
 {
 	const String2Key &s2k = m_key.string2Key();
 
+	m_keybuf = new uint8_t[KEYBUFFER_LENGTH];
 	if (s2k.spec() != String2Key::SPEC_SIMPLE) {
-		m_keybuf = new uint8_t[s2k.count()*2];
 		memcpy(m_keybuf, s2k.salt(), 8);
-	} else {
-		m_keybuf = new uint8_t[65535];
 	}
 
 	assert(s2k.hashAlgorithm() == CryptUtils::HASH_SHA1);
@@ -94,10 +95,11 @@ bool SHA1Cracker::check(const uint8_t *password, uint32_t length)
 			}
 			// Try to feed the hash function with 64-byte blocks
 			const int32_t bs = mul * 64;
+			assert(bs <= KEYBUFFER_LENGTH);
 			uint8_t *bptr = m_keybuf + tl;
 			int32_t n = bs / tl;
 			memcpy(m_keybuf + 8, password, length);
-			for (int32_t i = 1; i < n; i++) {
+			while (n-- > 1) {
 				memcpy(bptr, m_keybuf, tl);
 				bptr += tl;
 			}
