@@ -232,7 +232,7 @@ void blk_SHA1_Update(blk_SHA_CTX *ctx, const void *data, unsigned long len)
 
 	/* Read the data into W and process blocks as they get full */
 	if (lenW) {
-		int left = 64 - lenW;
+		unsigned int left = 64 - lenW;
 		if (len < left)
 			left = len;
 		memcpy(lenW + (char *)ctx->W, data, left);

@@ -36,6 +36,9 @@ pgpry_SOURCES = \
 
 CC = $(PTHREAD_CC)
 
+AM_CPPFLAGS = \
+	-DUSE_BLOCK_SHA1
+
 INCLUDES = \
 	-Iguessers \
 	-Icrackers \

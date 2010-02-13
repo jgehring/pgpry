@@ -11,6 +11,9 @@
 #define BLOCK_SHA1_H_
 
 
+#define SHA_DIGEST_LENGTH 20
+
+
 typedef struct {
 	unsigned long long size;
 	unsigned int H[5];
