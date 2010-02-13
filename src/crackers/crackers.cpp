@@ -15,7 +15,7 @@
 #include "buffer.h"
 #include "string2key.h"
 
-#include "cast5crackers.h"
+#include "sha1cracker.h"
 
 #include "crackers.h"
 
@@ -80,10 +80,10 @@ bool Cracker::init()
 Cracker *crackerFor(const Key &key, Buffer *buffer)
 {
 	const String2Key &s2k = key.string2Key();
-	switch (s2k.cipherAlgorithm())
+	switch (s2k.hashAlgorithm())
 	{
-		case CryptUtils::CIPHER_CAST5:
-			return cast5CrackerFor(key, buffer);
+		case CryptUtils::HASH_SHA1:
+			return new SHA1Cracker(key, buffer);
 			break;
 
 		default: break;

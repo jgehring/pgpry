@@ -26,7 +26,7 @@ pgpry_SOURCES = \
 	guessers/dictguesser.h guessers/dictguesser.cpp \
 	\
 	crackers/crackers.h crackers/crackers.cpp \
-	crackers/cast5crackers.h crackers/cast5crackers.cpp \
+	crackers/sha1cracker.h crackers/sha1cracker.cpp \
 	\
 	sysutils/sysutils.h sysutils/sysutils.cpp \
 	sysutils/threads.h sysutils/threads.cpp \
