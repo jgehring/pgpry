@@ -1,5 +1,5 @@
 #
-# pgpry 0.1 - PGP private key password recovery
+# pgpry - PGP private key recovery
 # Copyright (C) 2010 Jonas Gehring
 #
 
@@ -36,8 +36,10 @@ pgpry_SOURCES = \
 
 CC = $(PTHREAD_CC)
 
-AM_CPPFLAGS = \
-	-DUSE_BLOCK_SHA1
+AM_CPPFLAGS = 
+if BLOCK_SHA1
+AM_CPPFLAGS += -DUSE_BLOCK_SHA1
+endif
 
 INCLUDES = \
 	-Iguessers \

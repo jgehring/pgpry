@@ -1,5 +1,5 @@
 #
-# pgpry 0.1 - PGP private key password recovery
+# pgpry - PGP private key recovery
 # Copyright (C) 2010 Jonas Gehring
 #
 

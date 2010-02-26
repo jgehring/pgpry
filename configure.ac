@@ -1,5 +1,5 @@
 #
-# pgpry 0.1 - PGP private key password recovery
+# pgpry - PGP private key recovery
 # Copyright (C) 2010 Jonas Gehring
 #
 # Process this file with autoconf to produce a configure script.
@@ -58,7 +58,6 @@ AC_CHECK_FUNCS([gettimeofday memset strtol])
 AC_CHECK_FUNCS([regcomp])
 
 
-
 #
 # Checks for libraries
 #
@@ -69,6 +68,18 @@ AX_PTHREAD()
 # OpenSSL
 AX_CHECK_OPENSSL()
 
+
+#
+# Optional features
+#
+
+AC_ARG_ENABLE([block-sha1], [AS_HELP_STRING([--enable-block-sha1], [Use block-sha1 algorithm from git (default is no)])], [blocksha1="$enableval"], [blocksha1="no"])
+AM_CONDITIONAL([BLOCK_SHA1], [test "x$blocksha1" = "xyes"])
+
+
+#
+# End
+#
 
 AC_CONFIG_FILES([
 	Makefile
