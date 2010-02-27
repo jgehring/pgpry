@@ -20,7 +20,7 @@ pgpry_SOURCES = \
 	utils.h utils.cpp \
 	\
 	guessers/guessers.h guessers/guessers.cpp \
-	guessers/charsteguesser.h guessers/charsetguesser.cpp \
+	guessers/charsetguesser.h guessers/charsetguesser.cpp \
 	guessers/incguesser.h guessers/incguesser.cpp \
 	guessers/randomguesser.h guessers/randomguesser.cpp \
 	guessers/dictguesser.h guessers/dictguesser.cpp \
@@ -29,27 +29,19 @@ pgpry_SOURCES = \
 	crackers/sha1cracker.h crackers/sha1cracker.cpp \
 	\
 	sysutils/sysutils.h sysutils/sysutils.cpp \
-	sysutils/threads.h sysutils/threads.cpp \
-	\
-	3rdparty/block-sha1/sha1.h 3rdparty/block-sha1/sha1.cpp
-
-
-CC = $(PTHREAD_CC)
-
-AM_CPPFLAGS = 
-if BLOCK_SHA1
-AM_CPPFLAGS += -DUSE_BLOCK_SHA1
-endif
+	sysutils/threads.h sysutils/threads.cpp
 
 INCLUDES = \
-	-Iguessers \
-	-Icrackers \
-	-Isysutils \
+	-I@top_srcdir@/src/guessers \
+	-I@top_srcdir@/src/crackers \
+	-I@top_srcdir@/src/sysutils \
 	$(OPENSSL_INCLUDES)
 
 AM_CXXFLAGS = \
 	-Wall -pipe \
     $(PTHREAD_CFLAGS)
+
+AM_CPPFLAGS =
 
 AM_LDFLAGS = \
 	$(OPENSSL_LDFLAGS)
@@ -57,3 +49,11 @@ AM_LDFLAGS = \
 LIBS += \
 	$(PTHREAD_LIBS) \
 	$(OPENSSL_LIBS)
+
+
+# Optional features
+if BLOCK_SHA1
+pgpry_SOURCES += \
+	3rdparty/block-sha1/block-sha1.h 3rdparty/block-sha1/block-sha1.cpp
+AM_CPPFLAGS += -DUSE_BLOCK_SHA1
+endif

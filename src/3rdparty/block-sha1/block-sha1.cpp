@@ -11,7 +11,7 @@
 
 #include <netinet/in.h>
 
-#include "3rdparty/block-sha1/sha1.h"
+#include "3rdparty/block-sha1/block-sha1.h"
 
 #if defined(__GNUC__) && (defined(__i386__) || defined(__x86_64__))
 

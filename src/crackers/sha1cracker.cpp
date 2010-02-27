@@ -29,7 +29,7 @@
 #include <openssl/cast.h>
 
 #ifdef USE_BLOCK_SHA1
- #include "3rdparty/block-sha1/sha1.h"
+ #include "3rdparty/block-sha1/block-sha1.h"
  #define pgpry_SHA_CTX blk_SHA_CTX
  #define pgpry_SHA1_Init blk_SHA1_Init
  #define pgpry_SHA1_Update blk_SHA1_Update
