@@ -1,0 +1,19 @@
+Requirements for generating the test keys:
+
+  - Java >= 1.6
+  - Bouncycastle libraries (bcprov and bcpg)
+
+This dependencies are kind of inconvenient, so I'm shipping the generate
+private keys with the pgpry distribution. They can be found in the file
+"key.tar.bz2"
+
+If you really want to generate the keys yourself, place the Bouncycastle
+libaries in this directory and run the "genkeys.sh" script. This will
+also create the tarball mentioned above.
+
+Please note that some cipher algorithms may not be available on your
+system.  Sun (i.e. Oracle) provides so-called "unlimited jurisdication
+policy" files that enable the usage of strong crypthography routines. They
+can be found at the official Orcale sites:
+
+  http://www.google.com/search?q=%22JCE+Unlimited+Strength+Jurisdiction+Policy+Files%22

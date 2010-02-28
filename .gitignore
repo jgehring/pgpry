@@ -1,4 +1,6 @@
 *.[oa]
+*.class
+*.jar
 *.log
 *~
 .*.swp
