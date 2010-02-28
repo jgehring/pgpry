@@ -1,14 +1,14 @@
 Requirements for generating the test keys:
 
   - Java >= 1.6
-  - Bouncycastle libraries (bcprov and bcpg)
+  - Bouncycastle Java libraries (bcprov and bcpg JAR files)
 
 This dependencies are kind of inconvenient, so I'm shipping the generate
 private keys with the pgpry distribution. They can be found in the file
 "key.tar.bz2"
 
 If you really want to generate the keys yourself, place the Bouncycastle
-libaries in this directory and run the "genkeys.sh" script. This will
+JAR-files in this directory and run the "genkeys.sh" script. This will
 also create the tarball mentioned above.
 
 Please note that some cipher algorithms may not be available on your

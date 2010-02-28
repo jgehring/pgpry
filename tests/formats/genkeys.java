@@ -52,6 +52,10 @@ public class genkeys
 		PGPEncryptedData.TRIPLE_DES,
 		PGPEncryptedData.TWOFISH
 	};
+	static String[] cipherNames = {
+		"NULL", "IDEA", "TRIPLE_DES", "CAST5", "BLOWFISH",
+		"SAFER", "DES", "AES_128", "AES_192", "AES_256", "TWOFISH"
+	};
 
 	// Generates a key pair
 	private static KeyPair generatePair(String type, int length)
@@ -86,7 +90,7 @@ public class genkeys
 
 	// Program entry point
 	public static void main(String[] args)
-	{ 
+	{
 		Security.addProvider(new BouncyCastleProvider());
 
 		for (String keyType : keyTypes) {
@@ -101,7 +105,7 @@ public class genkeys
 				try {
 					KeyPair kp = generatePair("RSA", 1024);
 					for (int cipher : ciphers) {
-						FileOutputStream out = new FileOutputStream(String.format("%s/%d.asc", dir, cipher));
+						FileOutputStream out = new FileOutputStream(String.format("%s/%s.asc", dir, cipherNames[cipher].toLowerCase()));
 						try {
 							exportSecretKey(out, kp, cipher, "1234", true);
 						} catch (Exception e) {
