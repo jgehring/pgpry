@@ -83,6 +83,14 @@ bool SHA1Cracker::init()
 	assert(s2k.hashAlgorithm() == CryptUtils::HASH_SHA1);
 	m_keydata = new uint8_t[SHA_DIGEST_LENGTH];
 
+	switch (s2k.cipherAlgorithm()) {
+		case CryptUtils::CIPHER_CAST5:
+			break;
+		default:
+			std::cerr << "Unsupported cipher algorithm: " << s2k.cipherAlgorithm() << std::endl;
+			return false;
+	}
+
 	m_datalen = m_key.dataLength();
 	m_in = new uint8_t[m_datalen];
 	memcpy(m_in, m_key.data(), m_datalen);
@@ -138,12 +146,22 @@ bool SHA1Cracker::check(const uint8_t *password, uint32_t length)
 
 	pgpry_SHA1_Final(m_keydata, &ctx);
 
-	// Setup the decryption parameters
-	CAST_KEY ck;
-	CAST_set_key(&ck, SHA_DIGEST_LENGTH, m_keydata);
-
-	int32_t tmp = 0;
 	uint8_t iv[8];
+	memcpy(iv, s2k.ivec(), 8);
+	int32_t tmp = 0;
+
+	// Decrypt all data
+	switch (s2k.cipherAlgorithm()) {
+		case CryptUtils::CIPHER_CAST5: {
+			CAST_KEY ck;
+			CAST_set_key(&ck, SHA_DIGEST_LENGTH, m_keydata);
+			CAST_cfb64_encrypt(m_in, m_out, m_datalen, &ck, iv, &tmp, CAST_DECRYPT);
+		}
+		break;
+
+		default:
+			break;
+	}
 
 #if 0
 	memcpy(iv, s2k.ivec(), 8);
@@ -156,19 +174,33 @@ bool SHA1Cracker::check(const uint8_t *password, uint32_t length)
 	}
 #endif
 
-	// Decrypt all data
-	tmp = 0;
-	memcpy(iv, s2k.ivec(), 8);
-	CAST_cfb64_encrypt(m_in, m_out, m_datalen, &ck, iv, &tmp, CAST_DECRYPT);
-
 	// Verify
-	if (s2k.usage() == 254) {
-		pgpry_SHA1_Init(&ctx);
-		pgpry_SHA1_Update(&ctx, m_out, m_datalen - 20);
-		pgpry_SHA1_Final(m_keydata, &ctx);
-		if (memcmp(m_keydata, m_out + m_datalen - 20, 20) == 0) {
-			return true;
-		}
+	switch (s2k.usage()) {
+		case 254: {
+			pgpry_SHA1_Init(&ctx);
+			pgpry_SHA1_Update(&ctx, m_out, m_datalen - 20);
+			pgpry_SHA1_Final(m_keydata, &ctx);
+			if (memcmp(m_keydata, m_out + m_datalen - 20, 20) == 0) {
+				return true;
+			}
+		} break;
+
+		case 0:
+		case 255: {
+			uint16_t sum = 0;
+			for (uint32_t i = 0; i < m_datalen - 2; i += 4) {
+				sum += m_out[i];
+				sum += m_out[i+1];
+				sum += m_out[i+2];
+				sum += m_out[i+3];
+			}
+			if (sum == ((m_out[m_datalen - 2] << 8) | (m_out[m_datalen - 1]))) {
+				return true;
+			}
+		} break;
+
+		default:
+			break;
 	}
 
 	return false;
