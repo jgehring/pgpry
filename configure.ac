@@ -9,6 +9,7 @@ AC_PREREQ([2.6])
 AC_INIT(pgpry, alpha, jonas.gehring@boolsoft.org)
 AM_INIT_AUTOMAKE()
 AC_CONFIG_HEADER([config.h])
+AC_CONFIG_TESTDIR([tests])
 
 sinclude(m4/ax_check_openssl.m4)
 sinclude(m4/ax_pthread.m4)
@@ -84,5 +85,7 @@ AM_CONDITIONAL([BLOCK_SHA1], [test "x$blocksha1" = "xyes"])
 AC_CONFIG_FILES([
 	Makefile
 	src/Makefile
+	tests/Makefile
+	tests/atlocal
 ])
 AC_OUTPUT()

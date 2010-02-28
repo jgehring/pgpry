@@ -1,0 +1,7 @@
+#
+# pgpry - PGP private key recovery
+# Copyright (C) 2010 Jonas Gehring
+#
+
+# Additional paths for the autotest suite
+PATH=@abs_builddir@:@abs_top_builddir@/src:$top_srcdir:$srcdir:$PATH
