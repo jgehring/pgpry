@@ -45,6 +45,7 @@ class IncrementalGuesser : public CharsetGuesser
 	private:
 		uint32_t m_length;
 		uint32_t *m_indexes;
+		bool m_hasNext;
 };
 
 } // namespace Guessers

@@ -55,6 +55,7 @@ bool IncrementalGuesser::init()
 	for (uint32_t i = 0; i < m_maxlength; i++) {
 		m_indexes[i] = 0;
 	}
+	m_hasNext = true;
 
 	return true;
 }
@@ -62,19 +63,8 @@ bool IncrementalGuesser::init()
 // Guesses a pass pharse and returns false if the search space is exhausted
 bool IncrementalGuesser::guess(Memblock *m)
 {
-	// Determine next phrase
-	int32_t i = m_length - 1;
-	while (++m_indexes[i] >= m_cslength) {
-		m_indexes[i] = 0;
-		if (--i < 0) {
-			if (++m_length > m_maxlength) {
-				return false;
-			}
-			for (uint32_t j = 0; j < m_length; j++) {
-				m_indexes[j] = 0;
-			}
-			break;
-		}
+	if (!m_hasNext) {
+		return false;
 	}
 
 	if (m->length != m_length) {
@@ -82,6 +72,22 @@ bool IncrementalGuesser::guess(Memblock *m)
 	}
 	for (uint32_t j = 0; j < m_length; j++) {
 		m->data[j] = m_charset[m_indexes[j]];
+	}
+
+	// Determine next phrase
+	int32_t i = m_length - 1;
+	while (++m_indexes[i] >= m_cslength) {
+		m_indexes[i] = 0;
+		if (--i < 0) {
+			if (++m_length > m_maxlength) {
+				m_hasNext = false;
+				return true;
+			}
+			for (uint32_t j = 0; j < m_length; j++) {
+				m_indexes[j] = 0;
+			}
+			break;
+		}
 	}
 
 	return true;
