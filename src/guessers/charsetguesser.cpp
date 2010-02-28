@@ -61,7 +61,7 @@ void CharsetGuesser::setup(const std::map<std::string, std::string> &options)
 		m_cslength = 0;
 		m_charset = new uint8_t[255];
 		for (int32_t i = 0; i < 255; i++) {
-			if (isalpha(i) || isspace(i) || ispunct(i)) {
+			if (isprint(i)) {
 				m_charset[m_cslength++] = (uint8_t)i;
 			}
 		}
