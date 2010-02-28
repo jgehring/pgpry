@@ -40,9 +40,15 @@ namespace Crackers
 
 // Constructor
 Cracker::Cracker(const Key &key, Buffer *buffer)
-	: Thread(), m_key(key), m_buffer(buffer)
+	: Thread(), m_key(key), m_ivec(NULL), m_buffer(buffer)
 {
 
+}
+
+// Destructor
+Cracker::~Cracker()
+{
+	delete[] m_ivec;
 }
 
 // Main thread loop
@@ -86,7 +92,13 @@ void Cracker::run()
 // Cracker initialization routine
 bool Cracker::init()
 {
-	// The default implementation does nothing
+	// The default implementation caches a few key parameters
+	m_cipher = m_key.string2Key().cipherAlgorithm();
+
+	uint32_t bs = CryptUtils::blockSize(m_cipher);
+	m_ivec = new uint8_t[bs];
+	memcpy(m_ivec, m_key.string2Key().ivec(), bs);
+
 	return true;
 }
 

@@ -87,7 +87,7 @@ const uint8_t *String2Key::ivec() const
 	return m_iv;
 }
 
-// Reads S2K data from a stream 
+// Reads S2K data from a stream
 PIStream &String2Key::operator<<(PIStream &in)
 {
 	// Read usage and spec info

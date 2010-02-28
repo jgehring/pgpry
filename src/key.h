@@ -47,6 +47,7 @@ class Key
 
 		bool locked() const;
 		uint32_t dataLength() const;
+		uint32_t bits() const;
 		const uint8_t *data() const;
 		const String2Key &string2Key() const;
 
@@ -70,6 +71,17 @@ class Key
 		uint32_t m_time;
 		uint16_t m_expire;
 };
+
+// Inlined functions
+inline uint32_t Key::bits() const
+{
+	if (m_rsa) {
+		return BN_num_bits(m_rsa->n);
+	} else if (m_dsa) {
+		return BN_num_bits(m_rsa->p);
+	}
+	return 0;
+}
 
 // Convenience operators
 inline PIStream &operator>>(PIStream &in, Key &key)

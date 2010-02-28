@@ -26,6 +26,7 @@
 #include <cstring>
 #include <iostream>
 
+#include <openssl/bn.h>
 #include <openssl/cast.h>
 
 #ifdef USE_BLOCK_SHA1
@@ -73,6 +74,9 @@ SHA1Cracker::~SHA1Cracker()
 // Cracker initialization
 bool SHA1Cracker::init()
 {
+	if (!Cracker::init()) {
+		return false;
+	}
 	const String2Key &s2k = m_key.string2Key();
 
 	m_keybuf = new uint8_t[KEYBUFFER_LENGTH];
@@ -83,9 +87,10 @@ bool SHA1Cracker::init()
 	assert(s2k.hashAlgorithm() == CryptUtils::HASH_SHA1);
 	m_keydata = new uint8_t[SHA_DIGEST_LENGTH];
 
-	switch (s2k.cipherAlgorithm()) {
+	switch (m_cipher) {
 		case CryptUtils::CIPHER_CAST5:
 			break;
+
 		default:
 			std::cerr << "Unsupported cipher algorithm: " << s2k.cipherAlgorithm() << std::endl;
 			return false;
@@ -147,11 +152,35 @@ bool SHA1Cracker::check(const uint8_t *password, uint32_t length)
 	pgpry_SHA1_Final(m_keydata, &ctx);
 
 	uint8_t iv[8];
-	memcpy(iv, s2k.ivec(), 8);
 	int32_t tmp = 0;
 
+	// Decrypt first data block in order to check the first two bits of
+	// the MPI. If they are correct, there's a good chance that the
+	// password is correct, too.
+#if 1
+	memcpy(iv, m_ivec, 8);
+	switch (m_cipher) {
+		case CryptUtils::CIPHER_CAST5: {
+			CAST_KEY ck;
+			CAST_set_key(&ck, SHA_DIGEST_LENGTH, m_keydata);
+			CAST_cfb64_encrypt(m_in, m_out, 16, &ck, iv, &tmp, CAST_DECRYPT);
+		}
+		break;
+
+		default:
+			break;
+	}
+
+	uint32_t num_bits = ((m_out[0] << 8) | m_out[1]);
+	if (num_bits > m_key.bits()) {
+		return false;
+	}
+#endif
+
 	// Decrypt all data
-	switch (s2k.cipherAlgorithm()) {
+	memcpy(iv, m_ivec, 8);
+	tmp = 0;
+	switch (m_cipher) {
 		case CryptUtils::CIPHER_CAST5: {
 			CAST_KEY ck;
 			CAST_set_key(&ck, SHA_DIGEST_LENGTH, m_keydata);
@@ -163,44 +192,41 @@ bool SHA1Cracker::check(const uint8_t *password, uint32_t length)
 			break;
 	}
 
-#if 0
-	memcpy(iv, s2k.ivec(), 8);
-	// Decrypt first block in order to check the first two bits of the MPI.
-	// If they are correct, there's a good chance that the password is right.
-	CAST_cfb64_encrypt(m_in, m_out, 16, &ck, iv, &tmp, CAST_DECRYPT);
-	int32_t num_bits = (m_out[0] << 8 | m_out[1]);
-	if (num_bits != 1019) { // TODO
-		return false;
-	}
-#endif
-
 	// Verify
+	bool checksumOk = false;
 	switch (s2k.usage()) {
 		case 254: {
 			pgpry_SHA1_Init(&ctx);
 			pgpry_SHA1_Update(&ctx, m_out, m_datalen - 20);
 			pgpry_SHA1_Final(m_keydata, &ctx);
 			if (memcmp(m_keydata, m_out + m_datalen - 20, 20) == 0) {
-				return true;
+				checksumOk = true;
 			}
 		} break;
 
 		case 0:
 		case 255: {
 			uint16_t sum = 0;
-			for (uint32_t i = 0; i < m_datalen - 2; i += 4) {
+			for (uint32_t i = 0; i < m_datalen - 2; i++) {
 				sum += m_out[i];
-				sum += m_out[i+1];
-				sum += m_out[i+2];
-				sum += m_out[i+3];
 			}
-			if (sum == ((m_out[m_datalen - 2] << 8) | (m_out[m_datalen - 1]))) {
-				return true;
+			if (sum == ((m_out[m_datalen - 2] << 8) | m_out[m_datalen - 1])) {
+				checksumOk = true;
 			}
 		} break;
 
 		default:
 			break;
+	}
+
+	// If the checksum is ok, try to parse the first MPI of the private key
+	if (checksumOk) {
+		BIGNUM *b = NULL;
+		uint32_t blen = (((m_out[0] << 8) | m_out[1]) + 7) / 8;
+		if (blen < m_datalen && BN_bin2bn(m_out + 2, blen, b) != NULL) {
+			BN_free(b);
+			return true;
+		}
 	}
 
 	return false;

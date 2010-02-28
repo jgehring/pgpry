@@ -28,6 +28,7 @@
 
 #include "key.h"
 #include "threads.h"
+#include "cryptutils.h"
 
 class Buffer;
 
@@ -39,7 +40,7 @@ class Cracker : public SysUtils::Thread
 {
 	public:
 		Cracker(const Key &key, Buffer *buffer);
-		virtual ~Cracker() { }
+		virtual ~Cracker();
 
 	protected:
 		void run();
@@ -49,6 +50,8 @@ class Cracker : public SysUtils::Thread
 
 	protected:
 		Key m_key;
+		CryptUtils::CipherAlgorithm m_cipher;
+		uint8_t *m_ivec;
 
 	private:
 		Buffer *m_buffer;
