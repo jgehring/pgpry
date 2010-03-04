@@ -54,8 +54,13 @@ void Guesser::setup(const std::map<std::string, std::string> &)
 // Main thread loop
 void Guesser::run()
 {
-	if (!init()) {
-		std::cerr << "Error initializing guesser!" << std::endl;
+	try {
+		init();
+	} catch (const std::string &str) {
+		Attack::error(str);
+		return;
+	} catch (const char *str) {
+		Attack::error(str);
 		return;
 	}
 
@@ -99,11 +104,10 @@ void Guesser::run()
 	}
 }
 
-// Initializes the guesser
-bool Guesser::init()
+// Initializes the guesser and throws a string on failure
+void Guesser::init()
 {
 	// The default implementation does nothing
-	return true;
 }
 
 // Returns a guesser using the given name

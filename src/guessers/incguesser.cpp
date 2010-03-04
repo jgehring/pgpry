@@ -44,11 +44,9 @@ IncrementalGuesser::~IncrementalGuesser()
 }
 
 // Initializes the guesser
-bool IncrementalGuesser::init()
+void IncrementalGuesser::init()
 {
-	if (!CharsetGuesser::init()) {
-		return false;
-	}
+	CharsetGuesser::init();
 
 	m_length = m_minlength;
 	m_indexes = new uint32_t[m_maxlength];
@@ -56,8 +54,6 @@ bool IncrementalGuesser::init()
 		m_indexes[i] = 0;
 	}
 	m_hasNext = true;
-
-	return true;
 }
 
 // Guesses a pass pharse and returns false if the search space is exhausted

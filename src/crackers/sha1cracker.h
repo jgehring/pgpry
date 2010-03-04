@@ -39,7 +39,7 @@ class SHA1Cracker : public Cracker
 		~SHA1Cracker();
 
 	protected:
-		bool init();
+		void init();
 		bool check(const uint8_t *password, uint32_t length);
 
 	private:

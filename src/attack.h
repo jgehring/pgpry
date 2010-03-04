@@ -52,7 +52,8 @@ class Attack
 		{
 			STATUS_RUNNING = 0,
 			STATUS_SUCCESS = 1,
-			STATUS_FAILURE = 2
+			STATUS_EXHAUSTED = 2,
+			STATUS_FAILURE = 3
 		};
 
 	public:
@@ -60,6 +61,7 @@ class Attack
 
 		static void phraseFound(const Memblock &mblock);
 		static void exhausted();
+		static void error(const std::string &err);
 
 		static Status status();
 
@@ -75,6 +77,7 @@ class Attack
 		static std::vector<Guessers::Guesser *> m_guessers;
         static std::vector<RegexFilter *> m_regexFilters;
 		static std::vector<Crackers::Cracker *> m_crackers;
+		static std::string m_errString;
 		static Status m_status;
 		static SysUtils::Mutex m_mutex;
 		static SysUtils::WaitCondition m_condition;

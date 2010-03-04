@@ -41,7 +41,7 @@ class CharsetGuesser : public Guesser
 		virtual void setup(const std::map<std::string, std::string> &options);
 
 	protected:
-		virtual bool init();
+		virtual void init();
 
 	protected:
 		uint8_t *m_charset;

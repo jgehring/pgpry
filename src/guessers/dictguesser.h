@@ -45,7 +45,7 @@ class DictionaryGuesser : public Guesser
 		void setup(const std::map<std::string, std::string> &options);
 
 	protected:
-		bool init();
+		void init();
 		bool guess(Memblock *m);
 
 	protected:

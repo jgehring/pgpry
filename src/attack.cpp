@@ -42,6 +42,7 @@ Buffer *Attack::m_buffer = NULL;
 std::vector<Guessers::Guesser *> Attack::m_guessers;
 std::vector<RegexFilter *> Attack::m_regexFilters;
 std::vector<Crackers::Cracker *> Attack::m_crackers;
+std::string Attack::m_errString;
 Attack::Status Attack::m_status;
 SysUtils::Mutex Attack::m_mutex;
 SysUtils::WaitCondition Attack::m_condition;
@@ -89,8 +90,10 @@ int32_t Attack::run(const Key &key, const Options &options)
 
 	if (Attack::m_status == STATUS_SUCCESS) {
 		std::cout << "SUCCESS: Found pass phrase: '" << m_phrase.data << "'." << std::endl;
-	} else {
+	} else if (Attack::m_status == STATUS_EXHAUSTED) {
 		std::cout << "SORRY, the key space is exhausted. The attack failed." << std::endl;
+	} else { // STATUS_FAILURE
+		std::cout << "ERROR: " << Attack::m_errString << std::endl;
 	}
 
 	Attack::m_mutex.unlock();
@@ -106,7 +109,7 @@ int32_t Attack::run(const Key &key, const Options &options)
 		m_guessers[i]->wait();
 	}
 
-	return EXIT_SUCCESS;
+	return (Attack::m_status == STATUS_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE);
 }
 
 // Called by a cracker which has discovered the pass phrase
@@ -126,7 +129,7 @@ void Attack::phraseFound(const Memblock &mblock)
 void Attack::exhausted()
 {
 	Attack::m_mutex.lock();
-	Attack::m_status = STATUS_FAILURE;
+	Attack::m_status = STATUS_EXHAUSTED;
 	Attack::m_mutex.unlock();
 
 	// Insert empty memory blocks into the buffer. The cracker thread will finish
@@ -137,6 +140,16 @@ void Attack::exhausted()
 	}
 
 	Attack::m_mutex.lock();
+	Attack::m_condition.wakeAll();
+	Attack::m_mutex.unlock();
+}
+
+// Called whenever a problematic error appears, i.e. an unsupported algorithm
+void Attack::error(const std::string &errString)
+{
+	Attack::m_mutex.lock();
+	Attack::m_status = STATUS_FAILURE;
+	Attack::m_errString = errString;
 	Attack::m_condition.wakeAll();
 	Attack::m_mutex.unlock();
 }

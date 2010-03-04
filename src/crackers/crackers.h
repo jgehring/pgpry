@@ -45,7 +45,7 @@ class Cracker : public SysUtils::Thread
 	protected:
 		void run();
 
-		virtual bool init();
+		virtual void init();
 		virtual bool check(const uint8_t *password, uint32_t length) = 0;
 
 	protected:

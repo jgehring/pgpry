@@ -39,7 +39,7 @@ class RandomGuesser : public CharsetGuesser
 		~RandomGuesser();
 
 	protected:
-		bool init();
+		void init();
 		bool guess(Memblock *m);
 
 	private:

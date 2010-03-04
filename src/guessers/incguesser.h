@@ -39,7 +39,7 @@ class IncrementalGuesser : public CharsetGuesser
 		~IncrementalGuesser();
 
 	protected:
-		bool init();
+		void init();
 		bool guess(Memblock *m);
 
 	private:

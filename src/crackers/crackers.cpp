@@ -54,8 +54,13 @@ Cracker::~Cracker()
 // Main thread loop
 void Cracker::run()
 {
-	if (!init()) {
-		std::cerr << "Error initializing cracker!" << std::endl;
+	try {
+		init();
+	} catch (const std::string &str) {
+		Attack::error(str);
+		return;
+	} catch (const char *str) {
+		Attack::error(str);
 		return;
 	}
 
@@ -89,8 +94,8 @@ void Cracker::run()
 	}
 }
 
-// Cracker initialization routine
-bool Cracker::init()
+// Initializes the cracker and throws a string on failure
+void Cracker::init()
 {
 	// The default implementation caches a few key parameters
 	m_cipher = m_key.string2Key().cipherAlgorithm();
@@ -98,8 +103,6 @@ bool Cracker::init()
 	uint32_t bs = CryptUtils::blockSize(m_cipher);
 	m_ivec = new uint8_t[bs];
 	memcpy(m_ivec, m_key.string2Key().ivec(), bs);
-
-	return true;
 }
 
 

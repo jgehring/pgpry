@@ -51,7 +51,7 @@ class Guesser : public SysUtils::Thread
 	protected:
 		void run();
 
-		virtual bool init();
+		virtual void init();
 		virtual bool guess(Memblock *m) = 0;
 
 	private:

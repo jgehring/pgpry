@@ -72,11 +72,10 @@ SHA1Cracker::~SHA1Cracker()
 }
 
 // Cracker initialization
-bool SHA1Cracker::init()
+void SHA1Cracker::init()
 {
-	if (!Cracker::init()) {
-		return false;
-	}
+	Cracker::init();
+
 	const String2Key &s2k = m_key.string2Key();
 
 	m_keybuf = new uint8_t[KEYBUFFER_LENGTH];
@@ -92,16 +91,13 @@ bool SHA1Cracker::init()
 			break;
 
 		default:
-			std::cerr << "Unsupported cipher algorithm: " << s2k.cipherAlgorithm() << std::endl;
-			return false;
+			throw Utils::strprintf("Unsupported cipher algorithm: %d", s2k.cipherAlgorithm());
 	}
 
 	m_datalen = m_key.dataLength();
 	m_in = new uint8_t[m_datalen];
 	memcpy(m_in, m_key.data(), m_datalen);
 	m_out = new uint8_t[m_datalen];
-
-	return true;
 }
 
 // Checks if a password is valid

@@ -25,6 +25,8 @@
 #include <fstream>
 #include <iostream>
 
+#include "utils.h"
+
 #include "dictguesser.h"
 
 
@@ -52,12 +54,11 @@ void DictionaryGuesser::setup(const std::map<std::string, std::string> &options)
 	m_phrases.clear();
 }
 
-bool DictionaryGuesser::init()
+void DictionaryGuesser::init()
 {
 	std::ifstream in(m_dictfile.c_str());
 	if (in.fail()) {
-		std::cerr << "Error: Unable to open file " << m_dictfile << std::endl;
-		return false;
+		throw Utils::strprintf("Unable to open file %s", m_dictfile.c_str());
 	}
 
 	std::string str;
@@ -68,8 +69,6 @@ bool DictionaryGuesser::init()
 			m_phrases.push_back(Memblock(str.c_str()));
 		}
 	}
-
-	return true;
 }
 
 bool DictionaryGuesser::guess(Memblock *m)

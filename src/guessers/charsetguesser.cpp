@@ -88,9 +88,14 @@ void CharsetGuesser::setup(const std::map<std::string, std::string> &options)
 }
 
 // Initializes the guesser
-bool CharsetGuesser::init()
+void CharsetGuesser::init()
 {
-	return (m_charset != NULL && m_minlength <= m_maxlength);
+	if (m_charset == NULL) {
+		throw "Guesser's character set not initialized";
+	}
+	if (m_minlength > m_maxlength) {
+		throw "Minimum password length bigger than maximum password length";
+	}
 }
 
 } // namespace Guessers

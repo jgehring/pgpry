@@ -46,17 +46,14 @@ RandomGuesser::~RandomGuesser()
 }
 
 // Initializes the guesser
-bool RandomGuesser::init()
+void RandomGuesser::init()
 {
-	if (!CharsetGuesser::init()) {
-		return false;
-	}
+	CharsetGuesser::init();
 
 	// Buffer for random bytes: an integer for each word position
 	// and an extra one for the length
 	m_rblength = m_maxlength + 1;
 	m_randbuf = new uint32_t[m_rblength];
-	return true;
 }
 
 // Guesses a pass pharse and returns false if the search space is exhausted
