@@ -1,0 +1,11 @@
+#
+# pgpry - PGP private key recovery
+# Copyright (C) 2010 Jonas Gehring
+#
+# Test group for testing whole-program behaviour
+#
+
+AT_BANNER([Whole-program behaviour])
+AT_SETUP([Supported Formats])
+AT_CHECK([check_formats.pl])
+AT_CLEANUP()
