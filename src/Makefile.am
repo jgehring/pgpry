@@ -38,7 +38,7 @@ INCLUDES = \
 	$(OPENSSL_INCLUDES)
 
 AM_CXXFLAGS = \
-	-Wall -pipe \
+	-Wall -pipe -ansi \
     $(PTHREAD_CFLAGS)
 
 AM_CPPFLAGS =
