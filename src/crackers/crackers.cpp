@@ -99,10 +99,12 @@ void Cracker::init()
 {
 	// The default implementation caches a few key parameters
 	m_cipher = m_key.string2Key().cipherAlgorithm();
+	m_blockSize = CryptUtils::blockSize(m_cipher);
+	m_keySize = CryptUtils::keySize(m_cipher);
 
+	// m_ivec is a temporary initialization vector cache
 	uint32_t bs = CryptUtils::blockSize(m_cipher);
 	m_ivec = new uint8_t[bs];
-	memcpy(m_ivec, m_key.string2Key().ivec(), bs);
 }
 
 

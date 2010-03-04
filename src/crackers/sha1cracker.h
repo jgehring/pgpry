@@ -45,6 +45,7 @@ class SHA1Cracker : public Cracker
 	private:
 		uint8_t *m_keybuf;
 		uint8_t *m_keydata;
+		uint32_t m_numKeyHashes;
 
 		uint32_t m_datalen;
 		uint8_t *m_in;

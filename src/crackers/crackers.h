@@ -51,6 +51,8 @@ class Cracker : public SysUtils::Thread
 	protected:
 		Key m_key;
 		CryptUtils::CipherAlgorithm m_cipher;
+		uint32_t m_blockSize;
+		uint32_t m_keySize;
 		uint8_t *m_ivec;
 
 	private:

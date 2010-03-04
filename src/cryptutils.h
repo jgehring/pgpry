@@ -40,7 +40,10 @@ typedef enum {
 
 typedef enum {
 	CIPHER_UNKOWN = -1,
-	CIPHER_CAST5 = 3
+	CIPHER_CAST5 = 3,
+	CIPHER_AES128 = 7,
+	CIPHER_AES192 = 8,
+	CIPHER_AES256 = 9
 } CipherAlgorithm;
 
 typedef enum {

@@ -26,6 +26,7 @@
 #include <cstring>
 #include <iostream>
 
+#include <openssl/aes.h>
 #include <openssl/bn.h>
 #include <openssl/cast.h>
 
@@ -77,22 +78,30 @@ void SHA1Cracker::init()
 	Cracker::init();
 
 	const String2Key &s2k = m_key.string2Key();
+	assert(s2k.hashAlgorithm() == CryptUtils::HASH_SHA1);
 
 	m_keybuf = new uint8_t[KEYBUFFER_LENGTH];
 	if (s2k.spec() != String2Key::SPEC_SIMPLE) {
 		memcpy(m_keybuf, s2k.salt(), 8);
 	}
 
-	assert(s2k.hashAlgorithm() == CryptUtils::HASH_SHA1);
-	m_keydata = new uint8_t[SHA_DIGEST_LENGTH];
-
 	switch (m_cipher) {
 		case CryptUtils::CIPHER_CAST5:
+		case CryptUtils::CIPHER_AES128:
+		case CryptUtils::CIPHER_AES192:
+		case CryptUtils::CIPHER_AES256:
 			break;
 
 		default:
 			throw Utils::strprintf("Unsupported cipher algorithm: %d", s2k.cipherAlgorithm());
 	}
+
+	// How many hashes are needed for the key
+	m_numKeyHashes = 1;
+	while (m_numKeyHashes * SHA_DIGEST_LENGTH < m_keySize) {
+		++m_numKeyHashes;
+	}
+	m_keydata = new uint8_t[m_numKeyHashes * SHA_DIGEST_LENGTH];
 
 	m_datalen = m_key.dataLength();
 	m_in = new uint8_t[m_datalen];
@@ -107,59 +116,72 @@ bool SHA1Cracker::check(const uint8_t *password, uint32_t length)
 	uint32_t count = s2k.count();
 
 	pgpry_SHA_CTX ctx;
-	pgpry_SHA1_Init(&ctx);
 
-	switch (s2k.spec()) {
-		case String2Key::SPEC_ITERATED_SALTED: {
-			// Find multiplicator
-			int32_t tl = length + 8;
-			int32_t mul = 1;
-			while (mul < tl && ((64 * mul) % tl)) {
-				++mul;
-			}
-			// Try to feed the hash function with 64-byte blocks
-			const int32_t bs = mul * 64;
-			assert(bs <= KEYBUFFER_LENGTH);
-			uint8_t *bptr = m_keybuf + tl;
-			int32_t n = bs / tl;
-			memcpy(m_keybuf + 8, password, length);
-			while (n-- > 1) {
-				memcpy(bptr, m_keybuf, tl);
-				bptr += tl;
-			}
-			n = count / bs;
-			while (n-- > 0) {
-				pgpry_SHA1_Update(&ctx, m_keybuf, bs);
-			}
-			pgpry_SHA1_Update(&ctx, m_keybuf, count % bs);
-			break;
+	for (uint32_t i = 0; i < m_numKeyHashes; i++) {
+		pgpry_SHA1_Init(&ctx);
+		for (uint32_t j = 0; j < i; j++) {
+			pgpry_SHA1_Update(&ctx, "\0", 1);
 		}
 
-		case String2Key::SPEC_SALTED:
-			pgpry_SHA1_Update(&ctx, s2k.salt(), 8);
-			pgpry_SHA1_Update(&ctx, password, length);
-			break;
+		switch (s2k.spec()) {
+			case String2Key::SPEC_ITERATED_SALTED: {
+				// Find multiplicator
+				int32_t tl = length + 8;
+				int32_t mul = 1;
+				while (mul < tl && ((64 * mul) % tl)) {
+					++mul;
+				}
+				// Try to feed the hash function with 64-byte blocks
+				const int32_t bs = mul * 64;
+				assert(bs <= KEYBUFFER_LENGTH);
+				uint8_t *bptr = m_keybuf + tl;
+				int32_t n = bs / tl;
+				memcpy(m_keybuf + 8, password, length);
+				while (n-- > 1) {
+					memcpy(bptr, m_keybuf, tl);
+					bptr += tl;
+				}
+				n = count / bs;
+				while (n-- > 0) {
+					pgpry_SHA1_Update(&ctx, m_keybuf, bs);
+				}
+				pgpry_SHA1_Update(&ctx, m_keybuf, count % bs);
+				break;
+			}
 
-		default:
-			pgpry_SHA1_Update(&ctx, password, length);
-			break;
+			case String2Key::SPEC_SALTED:
+				pgpry_SHA1_Update(&ctx, s2k.salt(), 8);
+				pgpry_SHA1_Update(&ctx, password, length);
+				break;
+
+			default:
+				pgpry_SHA1_Update(&ctx, password, length);
+				break;
+		}
+
+		pgpry_SHA1_Final(m_keydata + (i * SHA_DIGEST_LENGTH), &ctx);
 	}
 
-	pgpry_SHA1_Final(m_keydata, &ctx);
-
-	uint8_t iv[8];
 	int32_t tmp = 0;
 
 	// Decrypt first data block in order to check the first two bits of
 	// the MPI. If they are correct, there's a good chance that the
 	// password is correct, too.
 #if 1
-	memcpy(iv, m_ivec, 8);
+	memcpy(m_ivec, s2k.ivec(), m_blockSize);
 	switch (m_cipher) {
 		case CryptUtils::CIPHER_CAST5: {
 			CAST_KEY ck;
 			CAST_set_key(&ck, SHA_DIGEST_LENGTH, m_keydata);
-			CAST_cfb64_encrypt(m_in, m_out, 16, &ck, iv, &tmp, CAST_DECRYPT);
+			CAST_cfb64_encrypt(m_in, m_out, CAST_BLOCK, &ck, m_ivec, &tmp, CAST_DECRYPT);
+		}
+		break;
+		case CryptUtils::CIPHER_AES128:
+		case CryptUtils::CIPHER_AES192:
+		case CryptUtils::CIPHER_AES256: {
+			AES_KEY ck;
+			AES_set_encrypt_key(m_keydata, m_keySize * 8, &ck);
+			AES_cfb128_encrypt(m_in, m_out, AES_BLOCK_SIZE, &ck, m_ivec, &tmp, AES_DECRYPT);
 		}
 		break;
 
@@ -174,13 +196,21 @@ bool SHA1Cracker::check(const uint8_t *password, uint32_t length)
 #endif
 
 	// Decrypt all data
-	memcpy(iv, m_ivec, 8);
+	memcpy(m_ivec, s2k.ivec(), m_blockSize);
 	tmp = 0;
 	switch (m_cipher) {
 		case CryptUtils::CIPHER_CAST5: {
 			CAST_KEY ck;
 			CAST_set_key(&ck, SHA_DIGEST_LENGTH, m_keydata);
-			CAST_cfb64_encrypt(m_in, m_out, m_datalen, &ck, iv, &tmp, CAST_DECRYPT);
+			CAST_cfb64_encrypt(m_in, m_out, m_datalen, &ck, m_ivec, &tmp, CAST_DECRYPT);
+		}
+		break;
+		case CryptUtils::CIPHER_AES128:
+		case CryptUtils::CIPHER_AES192:
+		case CryptUtils::CIPHER_AES256: {
+			AES_KEY ck;
+			AES_set_encrypt_key(m_keydata, m_keySize * 8, &ck);
+			AES_cfb128_encrypt(m_in, m_out, m_datalen, &ck, m_ivec, &tmp, AES_DECRYPT);
 		}
 		break;
 

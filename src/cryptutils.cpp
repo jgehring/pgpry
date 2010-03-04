@@ -22,6 +22,9 @@
  */
 
 
+#include <openssl/aes.h>
+#include <openssl/cast.h>
+
 #include "cryptutils.h"
 
 
@@ -33,7 +36,11 @@ uint32_t blockSize(CipherAlgorithm algorithm)
 {
 	switch (algorithm) {
 		case CIPHER_CAST5:
-			return 8;
+			return CAST_BLOCK;
+		case CIPHER_AES128:
+		case CIPHER_AES192:
+		case CIPHER_AES256:
+			return AES_BLOCK_SIZE;
 
 		default: break;
 	}
@@ -46,7 +53,13 @@ uint32_t keySize(CipherAlgorithm algorithm)
 {
 	switch (algorithm) {
 		case CIPHER_CAST5:
+			return CAST_KEY_LENGTH;
+		case CIPHER_AES128:
 			return 16;
+		case CIPHER_AES192:
+			return 24;
+		case CIPHER_AES256:
+			return 32;
 
 		default: break;
 	}
