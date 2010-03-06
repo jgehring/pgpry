@@ -1,5 +1,16 @@
 Unsorted TODO list for pgpry
 ============================
 
+Things to do be done for 0.1: 
+   - Add support for state saving and reloading the guesser state
+   - Add option listing for specific guessers
+   - Add prefix and suffix filter (is not efficient via regular expresssions)
+   - Tests:
+     - Add more bevhaviour tests (help screen, version screen, failure handling etc.) 
+     - Add compiled tests for program components, i.e. the Memblock class 
+   - Make a small web page
+
+Future work:
  - Add support for saving key data unencrypted
  - Add networking support
+ - Add missing algorithms: DES, Triple-DES and Twofish, MD5, RIPE-MD, SHA >= 256
