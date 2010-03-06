@@ -24,7 +24,7 @@
 
 import java.io.*;
 import java.security.*;
-import java.util.Date;
+import java.util.*;
 
 import org.bouncycastle.bcpg.ArmoredOutputStream;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
@@ -88,6 +88,19 @@ public class genkeys
 		out.close();
 	}
 
+	// Generates an easy password
+	public static String password()
+	{
+		Random generator = new Random();
+		int length = generator.nextInt(2) + 2;
+		String str = new String();
+		for (int i = 0; i < length; i++) {
+			str += new Integer(generator.nextInt(9)).toString();
+		}
+		System.out.println(str);
+		return str;
+	}
+
 	// Program entry point
 	public static void main(String[] args)
 	{
@@ -107,7 +120,7 @@ public class genkeys
 					for (int cipher : ciphers) {
 						FileOutputStream out = new FileOutputStream(String.format("%s/%s.asc", dir, cipherNames[cipher].toLowerCase()));
 						try {
-							exportSecretKey(out, kp, cipher, "1234", true);
+							exportSecretKey(out, kp, cipher, password(), true);
 						} catch (Exception e) {
 							System.err.println("Error exporting key: "+e.getMessage());
 						}

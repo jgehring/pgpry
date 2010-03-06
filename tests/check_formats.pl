@@ -11,8 +11,6 @@ my $archive="../../formats/keys.tar.bz2";
 my $charset="1234567890";  # Character set used for the test key passwords
 
 # Let's go
-print(`pwd`);
-print(`echo \$PATH`);
 if (not -f $archive) {
 	print("ERROR: Test keys archive ($archive) not present\n");
 	exit(1);
@@ -22,8 +20,10 @@ open(TAR, "tar -tjf $archive 2> /dev/null |");
 while (<TAR>) {
 	chomp();
 	next if /\/$/ or /\/null[^\/]*$/; # Skip directories and null keys
+	# DES, Triple-DES and Twofish are not supported yet
+	next if /\/des[^\/]*$/ or /\/triple_des[^\/]*$/ or /\/twofish[^\/]*$/;
 	my $key = $_;
-	system("tar --to-stdout -xjf $archive $key | pgpry -o charset=$charset") == 0
+	system("tar --to-stdout -xjf $archive $key | pgpry -o charset=$charset > /dev/null") == 0
 		or die("pgpry failed for key $key");
 }
 close(TAR);
