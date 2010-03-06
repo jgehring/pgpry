@@ -21,7 +21,7 @@ if (not -f $archive) {
 open(TAR, "tar -tjf $archive 2> /dev/null |");
 while (<TAR>) {
 	chomp();
-	next if /\/$/; # Skip directories
+	next if /\/$/ or /\/null[^\/]*$/; # Skip directories and null keys
 	my $key = $_;
 	system("tar --to-stdout -xjf $archive $key | pgpry -o charset=$charset") == 0
 		or die("pgpry failed for key $key");
