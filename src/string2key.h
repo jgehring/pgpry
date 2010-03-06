@@ -30,8 +30,11 @@
 
 #include "cryptutils.h"
 
+class Memblock;
 class PIStream;
 class POStream;
+
+class S2KGenerator;
 
 
 class String2Key
@@ -58,14 +61,20 @@ class String2Key
 		CryptUtils::CipherAlgorithm cipherAlgorithm() const;
 		const uint8_t *ivec() const;
 
+		void generateKey(const Memblock &string, uint8_t *key, uint32_t length) const;
+
 		PIStream &operator<<(PIStream &in);
 		POStream &operator>>(POStream &out);
 
 		String2Key &operator=(const String2Key &other);
 
 	private:
+		void setupGenerator() const;
+
+	private:
 		uint8_t m_usage;
 		Spec m_spec;
+		mutable S2KGenerator *m_keygen;
 
 		CryptUtils::HashAlgorithm m_hashAlgorithm;
 		uint8_t m_salt[8];

@@ -46,7 +46,7 @@ class Options
 		bool versionRequested() const;
 		const std::string &guesser() const;
 		const std::map<std::string, std::string> &guesserOptions() const;
-		uint32_t numCrackers() const;
+		uint32_t numTesters() const;
         bool useRegexFiltering() const;
         const std::string &regexFile() const;
         uint32_t numRegexFilters() const;
@@ -60,7 +60,7 @@ class Options
 		bool m_version;
 		std::string m_guesser;
 		std::map<std::string, std::string> m_guesserOptions;
-		uint32_t m_numCrackers;
+		uint32_t m_numTesters;
         std::string m_regexFile;
         uint32_t m_numRegexFilters;
 };

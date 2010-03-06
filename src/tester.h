@@ -17,52 +17,48 @@
  */
 
 /*
- * file: crackers.h
- * Cracker thread definition and factory
+ * file: tester.h
+ * Password testing thread
  */
 
 
-#ifndef CRACKERS_H_
-#define CRACKERS_H_
+#ifndef TESTER_H_
+#define TESTER_H_
 
 
-#include "key.h"
 #include "threads.h"
 #include "cryptutils.h"
 
 class Buffer;
 
 
-namespace Crackers
-{
-
-class Cracker : public SysUtils::Thread
+class Tester : public SysUtils::Thread
 {
 	public:
-		Cracker(const Key &key, Buffer *buffer);
-		virtual ~Cracker();
+		Tester(const Key &key, Buffer *buffer);
+		~Tester();
 
 	protected:
 		void run();
 
-		virtual void init();
-		virtual bool check(const uint8_t *password, uint32_t length) = 0;
+	private:
+		void init();
+		bool check(const Memblock &mblock);
 
-	protected:
-		Key m_key;
+	private:
+		const Key &m_key;
+		Buffer *m_buffer;
 		CryptUtils::CipherAlgorithm m_cipher;
 		uint32_t m_blockSize;
 		uint32_t m_keySize;
+		uint32_t m_digestSize;
 		uint8_t *m_ivec;
+		uint8_t *m_keydata;
 
-	private:
-		Buffer *m_buffer;
+		uint32_t m_datalen;
+		uint8_t *m_in;
+		uint8_t *m_out;
 };
 
 
-Cracker *crackerFor(const Key &key, Buffer *buffer);
-
-} // namespace Crackers
-
-
-#endif // CRACKERS_H_
+#endif // TESTER_H_

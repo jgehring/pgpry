@@ -23,6 +23,7 @@
 
 
 #include <openssl/aes.h>
+#include <openssl/blowfish.h>
 #include <openssl/cast.h>
 
 #include "cryptutils.h"
@@ -37,6 +38,8 @@ uint32_t blockSize(CipherAlgorithm algorithm)
 	switch (algorithm) {
 		case CIPHER_CAST5:
 			return CAST_BLOCK;
+		case CIPHER_BLOWFISH:
+			return BF_BLOCK;
 		case CIPHER_AES128:
 		case CIPHER_AES192:
 		case CIPHER_AES256:
@@ -54,12 +57,29 @@ uint32_t keySize(CipherAlgorithm algorithm)
 	switch (algorithm) {
 		case CIPHER_CAST5:
 			return CAST_KEY_LENGTH;
+		case CIPHER_BLOWFISH:
+			return 16;
 		case CIPHER_AES128:
 			return 16;
 		case CIPHER_AES192:
 			return 24;
 		case CIPHER_AES256:
 			return 32;
+
+		default: break;
+	}
+
+	return 0;
+}
+
+// Returns the digest size (in bytes) of a given hash algorithm
+uint32_t digestSize(HashAlgorithm algorithm)
+{
+	switch (algorithm) {
+		case HASH_MD5:
+			return 16;
+		case HASH_SHA1:
+			return 20;
 
 		default: break;
 	}

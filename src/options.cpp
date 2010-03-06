@@ -61,11 +61,11 @@ void Options::parse(int argc, char **argv)
 		} else if (a == "-o" || a == "--options") {
 			gopts = true;
 		} else if (a == "-j" && i < argc-1) {
-			if (!Utils::str2int(argv[++i], &m_numCrackers)) {
+			if (!Utils::str2int(argv[++i], &m_numTesters)) {
                 throw Utils::strprintf("Number expected (got %s)", argv[i]);
 			}
 		} else if (!a.compare(0, 7, "--jobs=")) {
-			if (!Utils::str2int(a.substr(7), &m_numCrackers)) {
+			if (!Utils::str2int(a.substr(7), &m_numTesters)) {
                 throw Utils::strprintf("Number expected (got %s)", a.substr(7).c_str());
 			}
         } else if (!a.compare(0, 10, "--regexes=")) {
@@ -133,9 +133,9 @@ const std::map<std::string, std::string> &Options::guesserOptions() const
 	return m_guesserOptions;
 }
 
-uint32_t Options::numCrackers() const
+uint32_t Options::numTesters() const
 {
-	return m_numCrackers;
+	return m_numTesters;
 }
 
 bool Options::useRegexFiltering() const
@@ -160,7 +160,7 @@ void Options::reset()
 	m_version = false;
 	m_guesser = "incremental";
 	m_guesserOptions.clear();
-	m_numCrackers = 1;
+	m_numTesters = 1;
     m_regexFile = std::string();
     m_numRegexFilters = 1;
 }

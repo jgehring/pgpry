@@ -17,6 +17,7 @@ pgpry_SOURCES = \
 	pistream.h pistream.cpp \
 	regexfilter.h regexfilter.cpp \
 	string2key.h string2key.cpp \
+	tester.h tester.cpp \
 	utils.h utils.cpp \
 	\
 	guessers/guessers.h guessers/guessers.cpp \
@@ -24,9 +25,6 @@ pgpry_SOURCES = \
 	guessers/incguesser.h guessers/incguesser.cpp \
 	guessers/randomguesser.h guessers/randomguesser.cpp \
 	guessers/dictguesser.h guessers/dictguesser.cpp \
-	\
-	crackers/crackers.h crackers/crackers.cpp \
-	crackers/sha1cracker.h crackers/sha1cracker.cpp \
 	\
 	sysutils/sysutils.h sysutils/sysutils.cpp \
 	sysutils/threads.h sysutils/threads.cpp

@@ -28,6 +28,20 @@
 
 #include "main.h"
 
+#ifdef USE_BLOCK_SHA1
+ #include "3rdparty/block-sha1/block-sha1.h"
+ #define pgpry_SHA_CTX blk_SHA_CTX
+ #define pgpry_SHA1_Init blk_SHA1_Init
+ #define pgpry_SHA1_Update blk_SHA1_Update
+ #define pgpry_SHA1_Final blk_SHA1_Final
+#else
+ #include <openssl/sha.h>
+ #define pgpry_SHA_CTX SHA_CTX
+ #define pgpry_SHA1_Init SHA1_Init
+ #define pgpry_SHA1_Update SHA1_Update
+ #define pgpry_SHA1_Final SHA1_Final
+#endif // USE_BLOCK_SHA1
+
 
 namespace CryptUtils
 {
@@ -41,6 +55,7 @@ typedef enum {
 typedef enum {
 	CIPHER_UNKOWN = -1,
 	CIPHER_CAST5 = 3,
+	CIPHER_BLOWFISH = 4,
 	CIPHER_AES128 = 7,
 	CIPHER_AES192 = 8,
 	CIPHER_AES256 = 9
@@ -55,6 +70,7 @@ typedef enum {
 
 uint32_t blockSize(CipherAlgorithm algorithm);
 uint32_t keySize(CipherAlgorithm algorithm);
+uint32_t digestSize(HashAlgorithm algorithm);
 
 } // namespace CryptUtils
 

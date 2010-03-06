@@ -28,6 +28,7 @@
 
 #include "main.h"
 
+#include <string>
 #include <vector>
 
 #include "key.h"
@@ -37,9 +38,7 @@
 class Buffer;
 class Options;
 class RegexFilter;
-namespace Crackers {
-	class Cracker;
-}
+class Tester;
 namespace Guessers {
 	class Guesser;
 }
@@ -68,7 +67,7 @@ class Attack
 	private:
 		static std::vector<Guessers::Guesser *> setupGuessers(Buffer *out, const Options &options);
         static std::vector<RegexFilter *> setupRegexFilters(Buffer *in, Buffer *out, const Options &options);
-		static std::vector<Crackers::Cracker *> setupCrackers(const Key &key, Buffer *in, const Options &options);
+		static std::vector<Tester *> setupTesters(const Key &key, Buffer *in, const Options &options);
 
 	private:
 		static Key m_key;
@@ -76,7 +75,7 @@ class Attack
 		static Buffer *m_buffer;
 		static std::vector<Guessers::Guesser *> m_guessers;
         static std::vector<RegexFilter *> m_regexFilters;
-		static std::vector<Crackers::Cracker *> m_crackers;
+		static std::vector<Tester *> m_testers;
 		static std::string m_errString;
 		static Status m_status;
 		static SysUtils::Mutex m_mutex;

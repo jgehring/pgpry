@@ -26,11 +26,11 @@
 #include <iostream>
 
 #include "buffer.h"
-#include "crackers.h"
 #include "guessers.h"
 #include "key.h"
 #include "options.h"
 #include "regexfilter.h"
+#include "tester.h"
 
 #include "attack.h"
 
@@ -41,7 +41,7 @@ Memblock Attack::m_phrase;
 Buffer *Attack::m_buffer = NULL;
 std::vector<Guessers::Guesser *> Attack::m_guessers;
 std::vector<RegexFilter *> Attack::m_regexFilters;
-std::vector<Crackers::Cracker *> Attack::m_crackers;
+std::vector<Tester *> Attack::m_testers;
 std::string Attack::m_errString;
 Attack::Status Attack::m_status;
 SysUtils::Mutex Attack::m_mutex;
@@ -63,11 +63,11 @@ int32_t Attack::run(const Key &key, const Options &options)
 
     if (options.useRegexFiltering()) {
         m_regexFilters = setupRegexFilters(&buffer, &buffer2, options);
-        m_crackers = setupCrackers(key, &buffer2, options);
+        m_testers = setupTesters(key, &buffer2, options);
     } else {
-        m_crackers = setupCrackers(key, &buffer, options);
+        m_testers = setupTesters(key, &buffer, options);
     }
-	if (m_crackers.empty()) {
+	if (m_testers.empty()) {
 		return EXIT_FAILURE;
 	}
 
@@ -81,8 +81,8 @@ int32_t Attack::run(const Key &key, const Options &options)
 	for (uint32_t i = 0; i < m_regexFilters.size(); i++) {
 		m_regexFilters[i]->start();
 	}
-	for (uint32_t i = 0; i < m_crackers.size(); i++) {
-		m_crackers[i]->start();
+	for (uint32_t i = 0; i < m_testers.size(); i++) {
+		m_testers[i]->start();
 	}
 
 	// Now all we've got to do is wait
@@ -99,8 +99,8 @@ int32_t Attack::run(const Key &key, const Options &options)
 	Attack::m_mutex.unlock();
 
 	// Wait for threads
-	for (uint32_t i = 0; i < m_crackers.size(); i++) {
-		m_crackers[i]->wait();
+	for (uint32_t i = 0; i < m_testers.size(); i++) {
+		m_testers[i]->wait();
 	}
 	for (uint32_t i = 0; i < m_regexFilters.size(); i++) {
 		m_regexFilters[i]->wait();
@@ -132,7 +132,7 @@ void Attack::exhausted()
 	Attack::m_status = STATUS_EXHAUSTED;
 	Attack::m_mutex.unlock();
 
-	// Insert empty memory blocks into the buffer. The cracker thread will finish
+	// Insert empty memory blocks into the buffer. The tester thread will finish
 	// if the attack status isn't RUNNING and it received an empty memory block from the buffer
 	uint32_t n = Attack::m_buffer->size();
 	for (uint32_t i = 0; i < n; i++) {
@@ -181,18 +181,11 @@ std::vector<RegexFilter *> Attack::setupRegexFilters(Buffer *in, Buffer *out, co
 }
 
 // Sets up the pass phrase testers
-std::vector<Crackers::Cracker *> Attack::setupCrackers(const Key &key, Buffer *in, const Options &options)
+std::vector<Tester *> Attack::setupTesters(const Key &key, Buffer *in, const Options &options)
 {
-	std::vector<Crackers::Cracker *> crackers;
-	for (uint32_t i = 0; i < options.numCrackers(); i++) {
-		Crackers::Cracker *c = Crackers::crackerFor(key, in);
-		if (c) {
-			crackers.push_back(c);
-		} else {
-			std::cerr << "Error: Unsupported hash or cipher algorithm: ";
-			std::cerr << (int)key.string2Key().hashAlgorithm() << std::endl;
-			break;
-		}
+	std::vector<Tester *> testers;
+	for (uint32_t i = 0; i < options.numTesters(); i++) {
+		testers.push_back(new Tester(key, in));
 	}
-	return crackers;
+	return testers;
 }
