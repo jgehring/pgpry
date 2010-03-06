@@ -26,8 +26,9 @@
 #define TESTER_H_
 
 
-#include "threads.h"
 #include "cryptutils.h"
+#include "key.h"
+#include "threads.h"
 
 class Buffer;
 
@@ -46,7 +47,7 @@ class Tester : public SysUtils::Thread
 		bool check(const Memblock &mblock);
 
 	private:
-		const Key &m_key;
+		Key m_key; // Keep a copy of the key because String2Key is not thread-safe
 		Buffer *m_buffer;
 		CryptUtils::CipherAlgorithm m_cipher;
 		uint32_t m_blockSize;

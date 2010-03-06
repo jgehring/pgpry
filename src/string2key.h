@@ -18,7 +18,7 @@
 
 /*
  * file: string2key.h
- * Encryption key calculation from a passphrase
+ * Thread-unsafe encryption key calculation from a passphrase
  */
 
 

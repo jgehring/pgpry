@@ -127,6 +127,7 @@ class S2KItSaltedSHA1Generator : public S2KItSaltedGenerator
 			pgpry_SHA_CTX ctx;
 			uint32_t numHashes = (length + SHA_DIGEST_LENGTH - 1) / SHA_DIGEST_LENGTH;
 
+			// TODO: This is not very efficient with multiple hashes
 			for (uint32_t i = 0; i < numHashes; i++) {
 				pgpry_SHA1_Init(&ctx);
 				for (uint32_t j = 0; j < i; j++) {
