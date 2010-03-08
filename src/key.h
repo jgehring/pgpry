@@ -78,7 +78,7 @@ inline uint32_t Key::bits() const
 	if (m_rsa) {
 		return BN_num_bits(m_rsa->n);
 	} else if (m_dsa) {
-		return BN_num_bits(m_rsa->p);
+		return BN_num_bits(m_dsa->p);
 	}
 	return 0;
 }
