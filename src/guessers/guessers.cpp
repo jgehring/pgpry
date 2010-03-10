@@ -51,6 +51,18 @@ void Guesser::setup(const std::map<std::string, std::string> &)
 	// The default implementation does nothing
 }
 
+// Saves the guesser state
+void Guesser::saveState(ConfWriter *)
+{
+	// The default implementation does nothing
+}
+
+// Loads the guesser state
+void Guesser::loadState(ConfReader *)
+{
+	// The default implementation does nothing
+}
+
 // Main thread loop
 void Guesser::run()
 {

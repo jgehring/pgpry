@@ -8,6 +8,7 @@ bin_PROGRAMS = pgpry
 pgpry_SOURCES = \
 	attack.h attack.cpp \
 	buffer.h buffer.cpp \
+	confio.h confio.cpp \
 	cryptutils.h cryptutils.cpp \
 	key.h key.cpp \
 	main.h main.cpp \

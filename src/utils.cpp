@@ -87,6 +87,32 @@ std::string int2str(int32_t i)
 	return out.str();
 }
 
+// Removes white-space characters at the beginning and end of a string
+void trim(std::string *str)
+{
+	size_t start = 0;
+	size_t end = str->length();
+
+	while (start < end && isspace(str->at(start))) {
+		++start;
+	}
+	while (end >= start && isspace(str->at(end))) {
+		--end;
+	}
+
+	if (start > 0 || end < str->length()) {
+		*str = str->substr(start, (end - start));
+	}
+}
+
+// Removes white-space characters at the beginning and end of a string
+std::string trim(const std::string &str)
+{
+	std::string copy(str);
+	trim(&copy);
+	return copy;
+}
+
 // sprintf for std::string
 std::string strprintf(const char *format, ...)
 {

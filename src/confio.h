@@ -17,40 +17,58 @@
  */
 
 /*
- * file: utils.h
- * Miscellaneous utility functions
+ * file: confio.h
+ * Configuration file reading and writing
  */
 
 
-#ifndef UTILS_H_
-#define UTILS_H_
+#ifndef CONFIO_H_
+#define CONFIO_H_
 
-
-#include <map>
-#include <string>
 
 #include "main.h"
 
+#include <istream>
+#include <ostream>
+#include <sstream>
 
-namespace Utils
+
+class ConfWriter
 {
+	public:
+		ConfWriter(std::ostream &stream);
 
-uint32_t toBigEndian(uint32_t i);
-uint32_t fromBigEndian(uint32_t i);
+		template <typename T>
+		void put(const std::string &tag, T value) {
+			m_out << tag << ": " << value << std::endl;
+		}
+		void putComment(const std::string &text);
 
-bool str2int(const std::string &str, int32_t *i);
-bool str2int(const std::string &str, uint32_t *i);
-std::string int2str(int32_t i);
-
-void trim(std::string *str);
-std::string trim(const std::string &str);
-
-std::string strprintf(const char *format, ...);
-
-std::string defaultOption(const std::map<std::string, std::string> &options, const std::string name, const std::string &def);
-int32_t defaultOption(const std::map<std::string, std::string> &options, const std::string name, int32_t def);
-
-} // namespace Utils
+	private:
+		std::ostream &m_out;
+};
 
 
-#endif // UTILS_H_
+class ConfReader
+{
+	public:
+		ConfReader(std::istream &stream);
+
+		bool next();
+		std::string tag() const;
+		template <typename T>
+		T get() {
+			T tmp;
+			std::istringstream is(m_value, std::istringstream::in);
+			is >> tmp;
+			return tmp;
+		}
+
+	private:
+		std::istream &m_in;
+		std::string m_tag;
+		std::string m_value;
+};
+
+
+#endif // CONFIO_H_

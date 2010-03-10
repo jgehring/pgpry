@@ -34,6 +34,8 @@
 #include "threads.h"
 
 class Buffer;
+class ConfReader;
+class ConfWriter;
 class Memblock;
 
 
@@ -47,6 +49,9 @@ class Guesser : public SysUtils::Thread
 		virtual ~Guesser() { }
 
 		virtual void setup(const std::map<std::string, std::string> &options);
+
+		void saveState(ConfWriter *writer);
+		void loadState(ConfReader *reader);
 
 	protected:
 		void run();
