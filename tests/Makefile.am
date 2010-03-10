@@ -36,17 +36,4 @@ $(TESTSUITE): $(srcdir)/testsuite.at $(srcdir)/package.m4
 	$(AUTOTEST) -I '$(srcdir)' -o $@.tmp $@.at
 	mv $@.tmp $@
 
-
-#
-# Test programs
-#
-
-#bin_PROGRAMS = cwbp_test_utils
-#cwbp_test_utils_SOURCES = \
-#    test_utils.c
-#
-#AM_CFLAGS = -Wall -I$(top_srcdir) \
-#    $(APR_CFLAGS) $(APR_CPPFLAGS) $(APR_INCLUDES)
-#
-#LIBS += $(APR_LIBS) \
-#    $(top_srcdir)/cwbp/libcwbp.la
+SUBDIRS = utests

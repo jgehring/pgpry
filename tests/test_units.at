@@ -1,0 +1,16 @@
+#
+# pgpry - PGP private key recovery
+# Copyright (C) 2010 Jonas Gehring
+#
+# Test group for unit testing
+#
+
+AT_BANNER([Unit tests])
+
+AT_SETUP([Utility functions])
+AT_CHECK([utests utils])
+AT_CLEANUP()
+
+AT_SETUP([ConfReader and ConfWriter])
+AT_CHECK([utests confio])
+AT_CLEANUP()

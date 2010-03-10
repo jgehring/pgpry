@@ -1,6 +1,4 @@
 *.[oa]
-*.class
-*.jar
 *.log
 *~
 .*.swp
@@ -8,6 +6,8 @@
 Makefile
 Makefile.in
 aclocal.m4
+atconfig
+atlocal
 autom4te.cache
 config.guess
 config.h

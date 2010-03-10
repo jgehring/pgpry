@@ -87,5 +87,6 @@ AC_CONFIG_FILES([
 	src/Makefile
 	tests/Makefile
 	tests/atlocal
+	tests/utests/Makefile
 ])
 AC_OUTPUT()
