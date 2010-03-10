@@ -40,7 +40,7 @@ class ConfWriter
 
 		template <typename T>
 		void put(const std::string &tag, T value) {
-			m_out << tag << ": " << value << std::endl;
+			m_out << tag << " : " << value << std::endl;
 		}
 		void putComment(const std::string &text);
 
@@ -57,7 +57,7 @@ class ConfReader
 		bool next();
 		std::string tag() const;
 		template <typename T>
-		T get() {
+		T get() const {
 			T tmp;
 			std::istringstream is(m_value, std::istringstream::in);
 			is >> tmp;

@@ -76,7 +76,7 @@ bool ConfReader::next()
 	} while (!line.empty() && line[0] == '#');
 
 	size_t pos = line.find(':');
-	if (pos < 0) {
+	if (pos == std::string::npos) {
 #ifndef NDEBUG
 		std::cerr << "ConfReader: Syntax error at '" << line << "'" << std::endl;
 #endif
