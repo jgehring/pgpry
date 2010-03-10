@@ -90,18 +90,18 @@ std::string int2str(int32_t i)
 // Removes white-space characters at the beginning and end of a string
 void trim(std::string *str)
 {
-	size_t start = 0;
-	size_t end = str->length();
+	int32_t start = 0;
+	int32_t end = str->length()-1;
 
 	while (start < end && isspace(str->at(start))) {
 		++start;
 	}
-	while (end >= start && isspace(str->at(end))) {
+	while (end > start && isspace(str->at(end))) {
 		--end;
 	}
 
-	if (start > 0 || end < str->length()) {
-		*str = str->substr(start, (end - start));
+	if (start > 0 || end < (int32_t)str->length()) {
+		*str = str->substr(start, (end - start + 1));
 	}
 }
 
