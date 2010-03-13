@@ -65,21 +65,25 @@ class Attack
 		static Status status();
 
 	private:
+		Attack();
+
 		static std::vector<Guessers::Guesser *> setupGuessers(Buffer *out, const Options &options);
         static std::vector<RegexFilter *> setupRegexFilters(Buffer *in, Buffer *out, const Options &options);
 		static std::vector<Tester *> setupTesters(const Key &key, Buffer *in, const Options &options);
 
 	private:
-		static Key m_key;
-		static Memblock m_phrase;
-		static Buffer *m_buffer;
-		static std::vector<Guessers::Guesser *> m_guessers;
-        static std::vector<RegexFilter *> m_regexFilters;
-		static std::vector<Tester *> m_testers;
-		static std::string m_errString;
-		static Status m_status;
-		static SysUtils::Mutex m_mutex;
-		static SysUtils::WaitCondition m_condition;
+		static Attack *ctx;
+
+		Key m_key;
+		Memblock m_phrase;
+		Buffer *m_buffer;
+		std::vector<Guessers::Guesser *> m_guessers;
+        std::vector<RegexFilter *> m_regexFilters;
+		std::vector<Tester *> m_testers;
+		std::string m_errString;
+		Status m_status;
+		SysUtils::Mutex m_mutex;
+		SysUtils::WaitCondition m_condition;
 };
 
 
@@ -87,9 +91,9 @@ class Attack
 inline Attack::Status Attack::status()
 {
 	Status status;
-	Attack::m_mutex.lock();
-	status = Attack::m_status;
-	Attack::m_mutex.unlock();
+	ctx->m_mutex.lock();
+	status = ctx->m_status;
+	ctx->m_mutex.unlock();
 	return status;
 }
 

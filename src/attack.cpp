@@ -36,80 +36,83 @@
 
 
 // Static variables
-Key Attack::m_key;
-Memblock Attack::m_phrase;
-Buffer *Attack::m_buffer = NULL;
-std::vector<Guessers::Guesser *> Attack::m_guessers;
-std::vector<RegexFilter *> Attack::m_regexFilters;
-std::vector<Tester *> Attack::m_testers;
-std::string Attack::m_errString;
-Attack::Status Attack::m_status;
-SysUtils::Mutex Attack::m_mutex;
-SysUtils::WaitCondition Attack::m_condition;
+Attack *Attack::ctx;
 
+
+// Private constructor
+Attack::Attack()
+	: m_buffer(NULL)
+{
+
+}
 
 // Performs the brute-force attack
 int32_t Attack::run(const Key &key, const Options &options)
 {
-	Attack::m_key = key;
-	Attack::m_status = STATUS_RUNNING;
+	if (ctx) {
+		delete ctx;
+	}
+	ctx = new Attack();
+
+	ctx->m_key = key;
+	ctx->m_status = STATUS_RUNNING;
 
 	// Setup threads
 	Buffer buffer, buffer2;
-	m_guessers = setupGuessers(&buffer, options);
-	if (m_guessers.empty()) {
+	ctx->m_guessers = setupGuessers(&buffer, options);
+	if (ctx->m_guessers.empty()) {
 		return EXIT_FAILURE;
 	}
 
     if (options.useRegexFiltering()) {
-        m_regexFilters = setupRegexFilters(&buffer, &buffer2, options);
-        m_testers = setupTesters(key, &buffer2, options);
+        ctx->m_regexFilters = setupRegexFilters(&buffer, &buffer2, options);
+        ctx->m_testers = setupTesters(key, &buffer2, options);
     } else {
-        m_testers = setupTesters(key, &buffer, options);
+        ctx->m_testers = setupTesters(key, &buffer, options);
     }
-	if (m_testers.empty()) {
+	if (ctx->m_testers.empty()) {
 		return EXIT_FAILURE;
 	}
 
-	Attack::m_buffer = &buffer;
-	Attack::m_mutex.lock();
+	ctx->m_buffer = &buffer;
+	ctx->m_mutex.lock();
 
 	// Start threads 
-	for (uint32_t i = 0; i < m_guessers.size(); i++) {
-		m_guessers[i]->start();
+	for (uint32_t i = 0; i < ctx->m_guessers.size(); i++) {
+		ctx->m_guessers[i]->start();
 	}
-	for (uint32_t i = 0; i < m_regexFilters.size(); i++) {
-		m_regexFilters[i]->start();
+	for (uint32_t i = 0; i < ctx->m_regexFilters.size(); i++) {
+		ctx->m_regexFilters[i]->start();
 	}
-	for (uint32_t i = 0; i < m_testers.size(); i++) {
-		m_testers[i]->start();
+	for (uint32_t i = 0; i < ctx->m_testers.size(); i++) {
+		ctx->m_testers[i]->start();
 	}
 
 	// Now all we've got to do is wait
-	Attack::m_condition.wait(&Attack::m_mutex);
+	ctx->m_condition.wait(&ctx->m_mutex);
 
-	if (Attack::m_status == STATUS_SUCCESS) {
-		std::cout << "SUCCESS: Found pass phrase: '" << m_phrase.data << "'." << std::endl;
-	} else if (Attack::m_status == STATUS_EXHAUSTED) {
+	if (ctx->m_status == STATUS_SUCCESS) {
+		std::cout << "SUCCESS: Found pass phrase: '" << ctx->m_phrase.data << "'." << std::endl;
+	} else if (ctx->m_status == STATUS_EXHAUSTED) {
 		std::cout << "SORRY, the key space is exhausted. The attack failed." << std::endl;
 	} else { // STATUS_FAILURE
-		std::cout << "ERROR: " << Attack::m_errString << std::endl;
+		std::cout << "ERROR: " << ctx->m_errString << std::endl;
 	}
 
-	Attack::m_mutex.unlock();
+	ctx->m_mutex.unlock();
 
 	// Wait for threads
-	for (uint32_t i = 0; i < m_testers.size(); i++) {
-		m_testers[i]->wait();
+	for (uint32_t i = 0; i < ctx->m_testers.size(); i++) {
+		ctx->m_testers[i]->wait();
 	}
-	for (uint32_t i = 0; i < m_regexFilters.size(); i++) {
-		m_regexFilters[i]->wait();
+	for (uint32_t i = 0; i < ctx->m_regexFilters.size(); i++) {
+		ctx->m_regexFilters[i]->wait();
 	}
-	for (uint32_t i = 0; i < m_guessers.size(); i++) {
-		m_guessers[i]->wait();
+	for (uint32_t i = 0; i < ctx->m_guessers.size(); i++) {
+		ctx->m_guessers[i]->wait();
 	}
 
-	return (Attack::m_status == STATUS_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE);
+	return (ctx->m_status == STATUS_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE);
 }
 
 // Called by a cracker which has discovered the pass phrase
@@ -117,41 +120,41 @@ void Attack::phraseFound(const Memblock &mblock)
 {
 	// TODO: Check the solution once more by trying to unlock the key
 
-	Attack::m_mutex.lock();
-	Attack::m_status = STATUS_SUCCESS;
+	ctx->m_mutex.lock();
+	ctx->m_status = STATUS_SUCCESS;
 
-	Attack::m_phrase = mblock;
-	Attack::m_condition.wakeAll();
-	Attack::m_mutex.unlock();
+	ctx->m_phrase = mblock;
+	ctx->m_condition.wakeAll();
+	ctx->m_mutex.unlock();
 }
 
 // Called by a guesser if it's out of phrases
 void Attack::exhausted()
 {
-	Attack::m_mutex.lock();
-	Attack::m_status = STATUS_EXHAUSTED;
-	Attack::m_mutex.unlock();
+	ctx->m_mutex.lock();
+	ctx->m_status = STATUS_EXHAUSTED;
+	ctx->m_mutex.unlock();
 
 	// Insert empty memory blocks into the buffer. The tester thread will finish
 	// if the attack status isn't RUNNING and it received an empty memory block from the buffer
-	uint32_t n = Attack::m_buffer->size();
+	uint32_t n = ctx->m_buffer->size();
 	for (uint32_t i = 0; i < n; i++) {
-		Attack::m_buffer->put(Memblock());
+		ctx->m_buffer->put(Memblock());
 	}
 
-	Attack::m_mutex.lock();
-	Attack::m_condition.wakeAll();
-	Attack::m_mutex.unlock();
+	ctx->m_mutex.lock();
+	ctx->m_condition.wakeAll();
+	ctx->m_mutex.unlock();
 }
 
 // Called whenever a problematic error appears, i.e. an unsupported algorithm
 void Attack::error(const std::string &errString)
 {
-	Attack::m_mutex.lock();
-	Attack::m_status = STATUS_FAILURE;
-	Attack::m_errString = errString;
-	Attack::m_condition.wakeAll();
-	Attack::m_mutex.unlock();
+	ctx->m_mutex.lock();
+	ctx->m_status = STATUS_FAILURE;
+	ctx->m_errString = errString;
+	ctx->m_condition.wakeAll();
+	ctx->m_mutex.unlock();
 }
 
 // Sets up the pass phrases guessers
