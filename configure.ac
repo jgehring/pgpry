@@ -47,6 +47,7 @@ AC_C_BIGENDIAN()
 # Checks for headers
 #
 
+AC_CHECK_HEADERS([signal.h])
 AC_CHECK_HEADERS([sys/time.h])
 
 

@@ -22,6 +22,8 @@
  */
 
 
+#include <iostream>
+
 #include "sysutils.h"
 
 
@@ -85,6 +87,37 @@ Watch::Watch()
 void Watch::start()
 {
 	gettimeofday(&m_tv, NULL);
+}
+
+
+// Constructor
+SigHandler::SigHandler()
+{
+
+}
+
+// Blocks the given signal
+bool SigHandler::block(int32_t sig)
+{
+	sigset_t set;
+	sigemptyset(&set);
+	sigaddset(&set, sig);
+	return pthread_sigmask(SIG_BLOCK, &set, NULL) == 0;
+}
+
+// Main thread loop
+void SigHandler::run()
+{
+	int32_t sig;
+	sigset_t set;
+	sigemptyset(&set);
+	setup(&set);
+
+	while (sigwait(&set, &sig) == 0) {
+		if (!handle(sig)) {
+			break;
+		}
+	}
 }
 
 } // namespace SysUtils

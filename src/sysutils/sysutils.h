@@ -31,9 +31,11 @@
 #include <string>
 
 #include <regex.h>
+#include <signal.h>
 #include <sys/time.h>
 
 #include "memblock.h"
+#include "threads.h"
 
 
 namespace SysUtils
@@ -78,6 +80,21 @@ class Watch
 
 	private:
 		timeval m_tv;
+};
+
+
+class SigHandler : public Thread
+{
+	public:
+		SigHandler();
+
+		static bool block(int32_t sig);
+
+	protected:
+		void run();
+
+		virtual void setup(sigset_t *set) = 0;
+		virtual bool handle(int32_t sig) = 0;
 };
 
 } // namespace SysUtils
