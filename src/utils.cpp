@@ -113,6 +113,34 @@ std::string trim(const std::string &str)
 	return copy;
 }
 
+// Split a string using the given token
+std::vector<std::string> split(const std::string &str, const std::string &token)
+{
+	std::vector<std::string> parts;
+	size_t index = 0;
+
+	if (token.length() == 0) {
+		for (size_t i = 0; i < str.length(); i++) {
+			parts.push_back(str.substr(i, 1));
+		}
+		return parts;
+	}
+
+	while (index < str.length()) {
+		size_t pos = str.find(token, index);
+		parts.push_back(str.substr(index, pos - index));
+		if (pos == std::string::npos) {
+			break;
+		}
+		index = pos + token.length();
+		if (index == str.length()) {
+			parts.push_back("");
+		}
+	}
+
+	return parts;
+}
+
 // sprintf for std::string
 std::string strprintf(const char *format, ...)
 {

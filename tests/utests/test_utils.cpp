@@ -24,6 +24,8 @@
 
 #include <cstdlib>
 #include <iostream>
+#include <sstream>
+#include <vector>
 
 #include "utils.h"
 
@@ -99,6 +101,71 @@ static void test_utils_trim()
 	}
 }
 
+// Tests for Utils::split()
+static void test_utils_split()
+{
+	struct inout_t {
+		std::string in;
+		std::string token;
+		std::vector<std::string> out;
+	} inout[] = {
+		{ "", "", std::vector<std::string>() },
+		{ "", "token", std::vector<std::string>() },
+		{ "1,2,3", ",", std::vector<std::string>() }, // "1,2,3"
+		{ "1,2,3", "token", std::vector<std::string>() }, // "1,2,3"
+		{ "abc1abc2abc3abc", "abc", std::vector<std::string>() }, // ",1,2,3,"
+		{ "1abc2abc3abc ", "abc", std::vector<std::string>() }, // "1,2,3, "
+		{ "defdef", "def", std::vector<std::string>() }, // ",,"
+		{ "defdef", "", std::vector<std::string>() } // ",,"
+	};
+	inout[2].out.push_back("1");
+	inout[2].out.push_back("2");
+	inout[2].out.push_back("3");
+	inout[3].out.push_back("1,2,3");
+	inout[4].out.push_back("");
+	inout[4].out.push_back("1");
+	inout[4].out.push_back("2");
+	inout[4].out.push_back("3");
+	inout[4].out.push_back("");
+	inout[5].out.push_back("1");
+	inout[5].out.push_back("2");
+	inout[5].out.push_back("3");
+	inout[5].out.push_back(" ");
+	inout[6].out.push_back("");
+	inout[6].out.push_back("");
+	inout[6].out.push_back("");
+	inout[7].out.push_back("d");
+	inout[7].out.push_back("e");
+	inout[7].out.push_back("f");
+	inout[7].out.push_back("d");
+	inout[7].out.push_back("e");
+	inout[7].out.push_back("f");
+
+	for (unsigned int i = 0; i < sizeof(inout) / sizeof(inout_t); i++) {
+		std::vector<std::string> out = Utils::split(inout[i].in, inout[i].token);
+		if (out != inout[i].out) {
+			std::ostringstream os;
+			os << "Invalid return value for input '" << inout[i].in << "', '" << inout[i].token << "' ";
+			os << "(expected '";
+			for (unsigned int j = 0; j < inout[i].out.size(); j++) {
+				os << inout[i].out[j];
+				if (j != inout[i].out.size()-1) {
+					os << ",";
+				}
+			}
+			os << "', got '";
+			for (unsigned int j = 0; j < out.size(); j++) {
+				os << out[j];
+				if (j != out.size()-1) {
+					os << ",";
+				}
+			}
+			os << "')";
+			throw os.str();
+		}
+	}
+}
+
 
 // Unit test entry point
 int test_utils(bool verbose)
@@ -109,7 +176,8 @@ int test_utils(bool verbose)
 	} parts[] = {
 		{ "Utils::str2int()", test_utils_str2int },
 		{ "Utils::int2str()", test_utils_int2str },
-		{ "Utils::trim()", test_utils_trim }
+		{ "Utils::trim()", test_utils_trim },
+		{ "Utils::split()", test_utils_split }
 	};
 
 	for (unsigned int i = 0; i < sizeof(parts) / sizeof(part_t); i++) {

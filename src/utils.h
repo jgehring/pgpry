@@ -28,6 +28,7 @@
 
 #include <map>
 #include <string>
+#include <vector>
 
 #include "main.h"
 
@@ -44,6 +45,7 @@ std::string int2str(int32_t i);
 
 void trim(std::string *str);
 std::string trim(const std::string &str);
+std::vector<std::string> split(const std::string &str, const std::string &token);
 
 std::string strprintf(const char *format, ...);
 

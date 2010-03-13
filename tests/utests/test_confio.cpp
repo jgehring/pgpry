@@ -33,7 +33,7 @@ static void test_confio_read()
 	std::string in = \
 		"# This is a comment\n" \
 		"number : 1\n" \
-		"double : 1.23\n";
+		"double : 1.23\n" \
 		"string : bla\n";
 	std::istringstream stream(in);
 
