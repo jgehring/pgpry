@@ -31,6 +31,9 @@
 
 #include "main.h"
 
+class ConfReader;
+class ConfWriter;
+
 
 class Options
 {
@@ -51,11 +54,16 @@ class Options
         const std::string &regexFile() const;
         uint32_t numRegexFilters() const;
 
+		void save(ConfWriter *writer) const;
+		void load(ConfReader *reader);
+
 	private:
+		void parse(const std::vector<std::string> &args);
 		void reset();
 		static void printOption(const std::string &option, const std::string &text);
 
 	private:
+		std::vector<std::string> m_commandLine;
 		bool m_help;
 		bool m_version;
 		std::string m_guesser;

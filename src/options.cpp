@@ -24,6 +24,7 @@
 
 #include <iostream>
 
+#include "confio.h"
 #include "utils.h"
 
 #include "options.h"
@@ -35,53 +36,15 @@ Options::Options()
 	reset();
 }
 
-// The actual parsing
+// Option parsing
 void Options::parse(int argc, char **argv)
 {
-	bool gopts = false;
-	for (int32_t i = 1; i < argc; i++) {
-		std::string a(argv[i]);
-
-		if (gopts) {
-			std::string::size_type pos = a.find("=");
-			if (pos != std::string::npos) {
-				m_guesserOptions[a.substr(0, pos)] = a.substr(pos+1);
-				continue;
-			}
-		}
-
-		if (a == "-?" || a == "-h" || a == "--help") {
-			m_help = true;
-		} else if (a == "--version") {
-			m_version = true;
-		} else if (a == "-g" && i < argc-1) {
-			m_guesser = argv[++i];
-		} else if (!a.compare(0, 10, "--guesser=")) {
-			m_guesser = a.substr(10);
-		} else if (a == "-o" || a == "--options") {
-			gopts = true;
-		} else if (a == "-j" && i < argc-1) {
-			if (!Utils::str2int(argv[++i], &m_numTesters)) {
-                throw Utils::strprintf("Number expected (got %s)", argv[i]);
-			}
-		} else if (!a.compare(0, 7, "--jobs=")) {
-			if (!Utils::str2int(a.substr(7), &m_numTesters)) {
-                throw Utils::strprintf("Number expected (got %s)", a.substr(7).c_str());
-			}
-        } else if (!a.compare(0, 10, "--regexes=")) {
-            m_regexFile = a.substr(10);
-        } else if (a == "-r" && i < argc-1) {
-            if (!Utils::str2int(argv[++i], &m_numRegexFilters)) {
-                throw Utils::strprintf("Number expected (got %s)", argv[i]);
-            }
-        } else if (!a.compare(0, 13, "--regex-jobs=")) {
-			if (!Utils::str2int(a.substr(13), &m_numRegexFilters)) {
-                throw Utils::strprintf("Number expected (got %s)", a.substr(13).c_str());
-			}
-		} else {
-			throw Utils::strprintf("Unkown argument %s", argv[i]);
-		}
+	m_commandLine.clear();
+	for (int32_t i = 0; i < argc; i++) {
+		m_commandLine.push_back(argv[i]);
 	}
+
+	parse(m_commandLine);
 }
 
 // Prints a help screen
@@ -153,9 +116,80 @@ uint32_t Options::numRegexFilters() const
     return m_numRegexFilters;
 }
 
+// Saves the current options
+void Options::save(ConfWriter *writer) const
+{
+	for (size_t i = 0; i < m_commandLine.size(); i++) {
+		writer->put("arg", m_commandLine[i]);
+	}
+}
+
+void Options::load(ConfReader *reader)
+{
+	reset();
+	m_commandLine.clear();
+	do {
+		if (reader->tag() == "arg") {
+			m_commandLine.push_back(reader->get<std::string>());
+		} else if (!reader->tag().empty()) {
+			break;
+		}
+	} while (reader->next());
+
+	parse(m_commandLine);
+}
+
+// The actual parsing
+void Options::parse(const std::vector<std::string> &args)
+{
+	bool gopts = false;
+	for (size_t i = 1; i < args.size(); i++) {
+		if (gopts) {
+			std::string::size_type pos = args[i].find("=");
+			if (pos != std::string::npos) {
+				m_guesserOptions[args[i].substr(0, pos)] = args[i].substr(pos+1);
+				continue;
+			}
+		}
+
+		if (args[i] == "-?" || args[i] == "-h" || args[i] == "--help") {
+			m_help = true;
+		} else if (args[i] == "--version") {
+			m_version = true;
+		} else if (args[i] == "-g" && i < args.size()-1) {
+			m_guesser = args[++i];
+		} else if (!args[i].compare(0, 10, "--guesser=")) {
+			m_guesser = args[i].substr(10);
+		} else if (args[i] == "-o" || args[i] == "--options") {
+			gopts = true;
+		} else if (args[i] == "-j" && i < args.size()-1) {
+			if (!Utils::str2int(args[++i], &m_numTesters)) {
+                throw Utils::strprintf("Number expected (got %s)", args[i].c_str());
+			}
+		} else if (!args[i].compare(0, 7, "--jobs=")) {
+			if (!Utils::str2int(args[i].substr(7), &m_numTesters)) {
+                throw Utils::strprintf("Number expected (got %s)", args[i].substr(7).c_str());
+			}
+        } else if (!args[i].compare(0, 10, "--regexes=")) {
+            m_regexFile = args[i].substr(10);
+        } else if (args[i] == "-r" && i < args.size()-1) {
+            if (!Utils::str2int(args[++i], &m_numRegexFilters)) {
+                throw Utils::strprintf("Number expected (got %s)", args[i].c_str());
+            }
+        } else if (!args[i].compare(0, 13, "--regex-jobs=")) {
+			if (!Utils::str2int(args[i].substr(13), &m_numRegexFilters)) {
+                throw Utils::strprintf("Number expected (got %s)", args[i].substr(13).c_str());
+			}
+		} else {
+			throw Utils::strprintf("Unkown argument %s", args[i].c_str());
+		}
+	}
+}
+
 // Sets default values
 void Options::reset()
 {
+	m_commandLine.clear();
 	m_help = false;
 	m_version = false;
 	m_guesser = "incremental";

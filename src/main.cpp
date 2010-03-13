@@ -23,9 +23,11 @@
 
 
 #include <cstdlib>
+#include <fstream>
 #include <iostream>
 
 #include "attack.h"
+#include "confio.h"
 #include "key.h"
 #include "options.h"
 #include "pistream.h"
@@ -34,10 +36,20 @@
 // Program entry point
 int main(int argc, char **argv)
 {
-	// Parse options
 	Options options;
+	ConfReader *reader = NULL;
+
+	// Check if there's a state file
+	std::ifstream in(PGPRY_STATEFILE);
 	try {
-		options.parse(argc, argv);
+		if (in.is_open()) {
+			std::cout << "State file found, resuming attack" << std::endl;
+			reader = new ConfReader(in);
+			options.load(reader);
+		} else {
+			// Parse command line options
+			options.parse(argc, argv);
+		}
 	} catch (const std::string &str) {
 		std::cerr << "Error parsing arguments: " << str << std::endl;
 		return EXIT_FAILURE;
@@ -73,5 +85,5 @@ int main(int argc, char **argv)
 	}
 
 	// Let's go
-	return Attack::run(key, options);
+	return Attack::run(key, options, reader);
 }

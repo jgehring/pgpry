@@ -36,6 +36,7 @@
 #include "threads.h"
 
 class Buffer;
+class ConfReader;
 class Options;
 class RegexFilter;
 class Tester;
@@ -52,28 +53,33 @@ class Attack
 			STATUS_RUNNING = 0,
 			STATUS_SUCCESS = 1,
 			STATUS_EXHAUSTED = 2,
-			STATUS_FAILURE = 3
+			STATUS_FAILURE = 3,
+			STATUS_ABORTED = 4
 		};
 
 	public:
-		static int32_t run(const Key &key, const Options &options);
+		static int32_t run(const Key &key, const Options &options, ConfReader *reader = NULL);
 
 		static void phraseFound(const Memblock &mblock);
 		static void exhausted();
 		static void error(const std::string &err);
+		static void saveAndAbort();
 
 		static Status status();
 
 	private:
-		Attack();
+		Attack(const Options &options);
 
 		static std::vector<Guessers::Guesser *> setupGuessers(Buffer *out, const Options &options);
         static std::vector<RegexFilter *> setupRegexFilters(Buffer *in, Buffer *out, const Options &options);
 		static std::vector<Tester *> setupTesters(const Key &key, Buffer *in, const Options &options);
 
+		void fillBuffer();
+
 	private:
 		static Attack *ctx;
 
+		const Options &m_options;
 		Key m_key;
 		Memblock m_phrase;
 		Buffer *m_buffer;

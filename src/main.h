@@ -29,6 +29,9 @@
 #include "config.h"
 
 
+#define PGPRY_STATEFILE "state"
+
+
 // Standard integer types
 #ifdef HAVE_STDINT_H
  #include <stdint.h>

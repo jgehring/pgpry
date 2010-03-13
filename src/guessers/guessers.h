@@ -48,10 +48,12 @@ class Guesser : public SysUtils::Thread
 		Guesser(Buffer *buffer);
 		virtual ~Guesser() { }
 
+		void start(bool resume = false);
+
 		virtual void setup(const std::map<std::string, std::string> &options);
 
-		void saveState(ConfWriter *writer);
-		void loadState(ConfReader *reader);
+		virtual void saveState(ConfWriter *writer) const;
+		virtual void loadState(ConfReader *reader);
 
 	protected:
 		void run();
@@ -61,6 +63,7 @@ class Guesser : public SysUtils::Thread
 
 	private:
 		Buffer *m_buffer;
+		bool m_resume;
 };
 
 

@@ -40,9 +40,16 @@ namespace Guessers
 
 // Constructor
 Guesser::Guesser(Buffer *buffer)
-	: Thread(), m_buffer(buffer)
+	: Thread(), m_buffer(buffer), m_resume(false)
 {
 
+}
+
+// Starts the guesser thread
+void Guesser::start(bool resume)
+{
+	m_resume = resume;
+	Thread::start();
 }
 
 // Sets up the guesser according to the given options
@@ -52,7 +59,7 @@ void Guesser::setup(const std::map<std::string, std::string> &)
 }
 
 // Saves the guesser state
-void Guesser::saveState(ConfWriter *)
+void Guesser::saveState(ConfWriter *) const
 {
 	// The default implementation does nothing
 }
@@ -66,24 +73,25 @@ void Guesser::loadState(ConfReader *)
 // Main thread loop
 void Guesser::run()
 {
-	try {
-		init();
-	} catch (const std::string &str) {
-		Attack::error(str);
-		return;
-	} catch (const char *str) {
-		Attack::error(str);
-		return;
+	if (!m_resume) {
+		try {
+			init();
+		} catch (const std::string &str) {
+			Attack::error(str);
+			return;
+		} catch (const char *str) {
+			Attack::error(str);
+			return;
+		}
 	}
 
     SysUtils::Watch watch;
-	uint32_t n = 0, numBlocks = 0;
+	int32_t n = 0, numBlocks = 0;
 
 	Memblock blocks[8];
 	while (true) {
 		for (numBlocks = 0; numBlocks < 8; numBlocks++) {
 			if (!guess(&blocks[numBlocks])) {
-				numBlocks--;
 				break;
 			}
 		}
@@ -92,12 +100,14 @@ void Guesser::run()
 		n += numBlocks;
 
 		if (watch.elapsed() > 2000) {
-			std::cout << "Rate: " << 1000 * (double)n/watch.elapsed() << " phrases / second. ";
-			std::cout << "Phrase: ";
-			for (uint32_t i = 0; i < blocks[numBlocks-1].length; i++) {
-				std::cout << (char)blocks[numBlocks-1].data[i];
+			if (Attack::status() == Attack::STATUS_RUNNING && numBlocks > 0) {
+				std::cout << "Rate: " << 1000 * (double)n/watch.elapsed() << " phrases / second. ";
+				std::cout << "Phrase: ";
+				for (uint32_t i = 0; i < blocks[numBlocks-1].length; i++) {
+					std::cout << (char)blocks[numBlocks-1].data[i];
+				}
+				std::cout << std::endl;
 			}
-			std::cout << std::endl;
 			watch.start();
 			n = 0;
 		}

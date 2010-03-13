@@ -22,6 +22,9 @@
  */
 
 
+#include <confio.h>
+#include <iostream>
+
 #include "memblock.h"
 
 #include "incguesser.h"
@@ -41,6 +44,42 @@ IncrementalGuesser::IncrementalGuesser(Buffer *buffer)
 IncrementalGuesser::~IncrementalGuesser()
 {
 	delete[] m_indexes;
+}
+
+// Saves the guesser state
+void IncrementalGuesser::saveState(ConfWriter *writer) const
+{
+	CharsetGuesser::saveState(writer);
+
+	writer->put("length", m_length);
+	writer->put("indexes", m_indexes, m_maxlength);
+	writer->put("has_next", m_hasNext);
+}
+
+// Loads the guesser state
+void IncrementalGuesser::loadState(ConfReader *reader)
+{
+	CharsetGuesser::loadState(reader);
+
+	delete[] m_indexes;
+	m_indexes = NULL;
+
+	do {
+		if (reader->tag() == "length") {
+			m_length = reader->get<uint32_t>();
+		} else if (reader->tag() == "indexes") {
+			m_indexes = new uint32_t[m_maxlength];
+			reader->get(m_indexes, m_maxlength);
+		} else if (reader->tag() == "has_next") {
+			m_hasNext = reader->get<bool>();
+		} else if (!reader->tag().empty()) {
+			break;
+		}
+	} while (reader->next());
+
+	if (m_indexes == NULL) {
+		throw "Tag 'indexes' is missing";
+	}
 }
 
 // Initializes the guesser

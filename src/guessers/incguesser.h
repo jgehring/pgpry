@@ -38,6 +38,9 @@ class IncrementalGuesser : public CharsetGuesser
 		IncrementalGuesser(Buffer *buffer);
 		~IncrementalGuesser();
 
+		void saveState(ConfWriter *writer) const;
+		void loadState(ConfReader *reader);
+
 	protected:
 		void init();
 		bool guess(Memblock *m);
