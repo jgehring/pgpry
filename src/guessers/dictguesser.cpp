@@ -40,6 +40,7 @@ DictionaryGuesser::DictionaryGuesser(Buffer *buffer)
 
 }
 
+// Sets up the guesser according to the given options
 void DictionaryGuesser::setup(const std::map<std::string, std::string> &options)
 {
 	std::map<std::string, std::string>::const_iterator it;
@@ -54,6 +55,16 @@ void DictionaryGuesser::setup(const std::map<std::string, std::string> &options)
 	m_phrases.clear();
 }
 
+// Returns a list of all supported options
+std::vector<std::pair<std::string, std::string> > DictionaryGuesser::options() const
+{
+	typedef std::pair<std::string, std::string> strpair_t;
+	std::vector<strpair_t> opts = Guesser::options();
+	opts.push_back(strpair_t("dictionary", "Dictionary file"));
+	return opts;
+}
+
+// Initializes the guesser
 void DictionaryGuesser::init()
 {
 	std::ifstream in(m_dictfile.c_str());
@@ -71,6 +82,7 @@ void DictionaryGuesser::init()
 	}
 }
 
+// Guesses a pass pharse and returns false if the search space is exhausted
 bool DictionaryGuesser::guess(Memblock *m)
 {
 	if (m_index >= m_phrases.size()) {

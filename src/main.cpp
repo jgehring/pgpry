@@ -64,6 +64,9 @@ int main(int argc, char **argv)
 	} else if (options.versionRequested()) {
 		options.printVersion();
 		return EXIT_SUCCESS;
+	} else if (options.guesserListRequested()) {
+		options.printGuesserList();
+		return EXIT_SUCCESS;
 	}
 
 	// Read key from stdin

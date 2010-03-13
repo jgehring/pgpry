@@ -39,6 +39,7 @@ class CharsetGuesser : public Guesser
 		~CharsetGuesser();
 
 		virtual void setup(const std::map<std::string, std::string> &options);
+		virtual std::vector<std::pair<std::string, std::string> > options() const;
 
 	protected:
 		virtual void init();

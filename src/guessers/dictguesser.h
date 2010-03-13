@@ -43,6 +43,7 @@ class DictionaryGuesser : public Guesser
 		DictionaryGuesser(Buffer *buffer);
 
 		void setup(const std::map<std::string, std::string> &options);
+		std::vector<std::pair<std::string, std::string> > options() const;
 
 	protected:
 		void init();

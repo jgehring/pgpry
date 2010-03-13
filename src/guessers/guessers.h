@@ -30,6 +30,8 @@
 
 #include <map>
 #include <string>
+#include <utility>
+#include <vector>
 
 #include "threads.h"
 
@@ -51,6 +53,7 @@ class Guesser : public SysUtils::Thread
 		void start(bool resume = false);
 
 		virtual void setup(const std::map<std::string, std::string> &options);
+		virtual std::vector<std::pair<std::string, std::string> > options() const;
 
 		virtual void saveState(ConfWriter *writer) const;
 		virtual void loadState(ConfReader *reader);
@@ -68,6 +71,7 @@ class Guesser : public SysUtils::Thread
 
 
 Guesser *guesser(const std::string &name, Buffer *buffer);
+std::vector<std::pair<std::string, std::string> > guessers();
 
 } // namespace Guessers
 

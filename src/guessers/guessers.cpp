@@ -58,6 +58,12 @@ void Guesser::setup(const std::map<std::string, std::string> &)
 	// The default implementation does nothing
 }
 
+// Returns a list of all supported options
+std::vector<std::pair<std::string, std::string> > Guesser::options() const
+{
+	return std::vector<std::pair<std::string, std::string> >();
+}
+
 // Saves the guesser state
 void Guesser::saveState(ConfWriter *) const
 {
@@ -143,6 +149,17 @@ Guesser *guesser(const std::string &name, Buffer *buffer)
 		return new DictionaryGuesser(buffer);
 	}
 	return NULL;
+}
+
+// Returns a list of all guessers
+std::vector<std::pair<std::string, std::string> > guessers()
+{
+	typedef std::pair<std::string, std::string> strpair_t;
+	std::vector<strpair_t> list;
+	list.push_back(strpair_t("incremental", "Incremental guessing (\"try them all\")"));
+	list.push_back(strpair_t("random", "Random guessing"));
+	list.push_back(strpair_t("dictionary", "Dictionary guessing"));
+	return list;
 }
 
 } // namespace Guessers

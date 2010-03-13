@@ -29,6 +29,9 @@
 
 #include "charsetguesser.h"
 
+#define DEFAULT_MIN 1
+#define DEFAULT_MAX 10
+
 
 namespace Guessers
 {
@@ -59,7 +62,7 @@ void CharsetGuesser::setup(const std::map<std::string, std::string> &options)
 		memcpy(m_charset, (*it).second.c_str(), m_cslength);
 	} else {
 		m_cslength = 0;
-		m_charset = new uint8_t[255];
+		m_charset = new uint8_t[256];
 		for (int32_t i = 0; i < 255; i++) {
 			if (isprint(i)) {
 				m_charset[m_cslength++] = (uint8_t)i;
@@ -67,8 +70,8 @@ void CharsetGuesser::setup(const std::map<std::string, std::string> &options)
 		}
 	}
 
-	m_minlength = Utils::defaultOption(options, "min", 1);
-	m_maxlength = Utils::defaultOption(options, "max", 10);
+	m_minlength = Utils::defaultOption(options, "min", DEFAULT_MIN);
+	m_maxlength = Utils::defaultOption(options, "max", DEFAULT_MAX);
 	it = options.find("min");
 	if (it != options.end()) {
 		uint32_t t;
@@ -76,8 +79,6 @@ void CharsetGuesser::setup(const std::map<std::string, std::string> &options)
 			m_minlength = t;
 		}
 	}
-
-	m_maxlength = 10;
 	it = options.find("max");
 	if (it != options.end()) {
 		uint32_t t;
@@ -85,6 +86,17 @@ void CharsetGuesser::setup(const std::map<std::string, std::string> &options)
 			m_maxlength = t;
 		}
 	}
+}
+
+// Returns a list of all supported options
+std::vector<std::pair<std::string, std::string> > CharsetGuesser::options() const
+{
+	typedef std::pair<std::string, std::string> strpair_t;
+	std::vector<strpair_t> opts = Guesser::options();
+	opts.push_back(strpair_t("charset", "Chacter set (default: all printable characters)"));
+	opts.push_back(strpair_t("min", Utils::strprintf("Minimum password length (default: %d)", DEFAULT_MIN)));
+	opts.push_back(strpair_t("max", Utils::strprintf("Maximum password length (default: %d)", DEFAULT_MAX)));
+	return opts;
 }
 
 // Initializes the guesser

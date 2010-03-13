@@ -42,17 +42,20 @@ class Options
 
 		void parse(int argc, char **argv);
 
-		static void printHelp();
-		static void printVersion();
+		void printHelp() const;
+		void printVersion() const;
+		void printGuesserList() const;
+		void printGuesserHelp(const std::string &name) const;
 
 		bool helpRequested() const;
 		bool versionRequested() const;
-		const std::string &guesser() const;
+		bool guesserListRequested() const;
+		std::string guesser() const;
 		const std::map<std::string, std::string> &guesserOptions() const;
 		uint32_t numTesters() const;
-        bool useRegexFiltering() const;
-        const std::string &regexFile() const;
-        uint32_t numRegexFilters() const;
+		bool useRegexFiltering() const;
+		std::string regexFile() const;
+		uint32_t numRegexFilters() const;
 
 		void save(ConfWriter *writer) const;
 		void load(ConfReader *reader);
@@ -66,11 +69,12 @@ class Options
 		std::vector<std::string> m_commandLine;
 		bool m_help;
 		bool m_version;
+		bool m_listGuessers;
 		std::string m_guesser;
 		std::map<std::string, std::string> m_guesserOptions;
 		uint32_t m_numTesters;
-        std::string m_regexFile;
-        uint32_t m_numRegexFilters;
+		std::string m_regexFile;
+		uint32_t m_numRegexFilters;
 };
 
 

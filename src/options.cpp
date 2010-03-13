@@ -25,6 +25,7 @@
 #include <iostream>
 
 #include "confio.h"
+#include "guessers.h"
 #include "utils.h"
 
 #include "options.h"
@@ -48,15 +49,20 @@ void Options::parse(int argc, char **argv)
 }
 
 // Prints a help screen
-void Options::printHelp()
+void Options::printHelp() const
 {
+	if (!m_guesser.empty()) {
+		printGuesserHelp(m_guesser);
+		return;
+	}
+	
 	std::cout << "USAGE: " << PACKAGE_NAME << " [options]" << std::endl;
 	std::cout << std::endl;
 	std::cout << "Valid options:" << std::endl;
 	printOption("-h, --help, -?", "Output basic usage information");
 	printOption("--version", "Output version information");
-	printOption("-g METHOD, --guesser=METHOD", "Use METHOD for guessing phrases");
 	printOption("-l, --list-guessers", "List available guessing methods");
+	printOption("-g METHOD, --guesser=METHOD", "Use METHOD for guessing phrases");
 	printOption("-o OPTION1=VALUE1 OPTION2=VALUE2 ..., --options OPTION1=VALUE1 ...", "Set guessing options (name-value pairs)");
     printOption("--regexes=FILE", "Read regular expressions from FILE");
 	printOption("-j N, --jobs=N", "Use N cracker (phrase testing) jobs");
@@ -68,11 +74,44 @@ void Options::printHelp()
 }
 
 // Prints version information
-void Options::printVersion()
+void Options::printVersion() const
 {
 	std::cout << PACKAGE_NAME << " " << PACKAGE_VERSION << std::endl;
 	std::cout << "Copyright (C) 2010 " << "Jonas Gehring <" << PACKAGE_BUGREPORT << ">" << std::endl;
 	std::cout << "Released under the GNU General Public License." << std::endl;
+}
+
+// Prints a listing of the included guessers
+void Options::printGuesserList() const
+{
+	std::cout << "Available guessing methods:" << std::endl;
+	std::cout << std::endl;
+
+	std::vector<std::pair<std::string, std::string> > guessers = Guessers::guessers();
+	for (uint32_t i = 0; i < guessers.size(); i++) {
+		printOption(guessers[i].first, guessers[i].second);
+	}
+
+	std::cout << std::endl;
+	std::cout << "Use --guesser=<guesser> --help to list the supported options of a guesser" << std::endl;
+}
+
+// Prints a help screen for the given guesser
+void Options::printGuesserHelp(const std::string &name) const
+{
+	Guessers::Guesser *guesser = Guessers::guesser(name, NULL);
+	if (guesser == NULL) {
+		std::cerr << "ERROR: No such guessing method: " << name << std::endl;
+		return;
+	}
+
+	std::cout << "Valid options for guessing method '" << name << "':" << std::endl;
+	std::vector<std::pair<std::string, std::string> > options = guesser->options();
+	for (uint32_t i = 0; i < options.size(); i++) {
+		printOption(options[i].first, options[i].second);
+	}
+
+	delete guesser;
 }
 
 // Query functions
@@ -86,8 +125,16 @@ bool Options::versionRequested() const
 	return m_version;
 }
 
-const std::string &Options::guesser() const
+bool Options::guesserListRequested() const
 {
+	return m_listGuessers;
+}
+
+std::string Options::guesser() const
+{
+	if (m_guesser.empty()) {
+		return "incremental";
+	}
 	return m_guesser;
 }
 
@@ -106,7 +153,7 @@ bool Options::useRegexFiltering() const
     return !m_regexFile.empty();
 }
 
-const std::string &Options::regexFile() const
+std::string Options::regexFile() const
 {
     return m_regexFile;
 }
@@ -156,6 +203,8 @@ void Options::parse(const std::vector<std::string> &args)
 			m_help = true;
 		} else if (args[i] == "--version") {
 			m_version = true;
+		} else if (args[i] == "-l" || args[i] == "--list-guessers") {
+			m_listGuessers = true;
 		} else if (args[i] == "-g" && i < args.size()-1) {
 			m_guesser = args[++i];
 		} else if (!args[i].compare(0, 10, "--guesser=")) {
@@ -192,7 +241,8 @@ void Options::reset()
 	m_commandLine.clear();
 	m_help = false;
 	m_version = false;
-	m_guesser = "incremental";
+	m_listGuessers = false;
+	m_guesser = std::string();
 	m_guesserOptions.clear();
 	m_numTesters = 1;
     m_regexFile = std::string();
