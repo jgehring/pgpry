@@ -32,7 +32,6 @@ pgpry_SOURCES = \
 
 INCLUDES = \
 	-I@top_srcdir@/src/guessers \
-	-I@top_srcdir@/src/crackers \
 	-I@top_srcdir@/src/sysutils \
 	$(OPENSSL_INCLUDES)
 
