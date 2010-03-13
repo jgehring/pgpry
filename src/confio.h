@@ -32,6 +32,8 @@
 #include <ostream>
 #include <sstream>
 
+#include "utils.h"
+
 
 class ConfWriter
 {
@@ -41,6 +43,14 @@ class ConfWriter
 		template <typename T>
 		void put(const std::string &tag, T value) {
 			m_out << tag << " : " << value << std::endl;
+		}
+		template <typename T>
+		void put(const std::string &tag, T *value, uint32_t n) {
+			m_out << tag << " : ";
+			for (uint32_t i = 0; i < n-1; i++) {
+				m_out << value[i] << ",";
+			}
+			m_out << value[n-1] << std::endl;
 		}
 		void putComment(const std::string &text);
 
@@ -62,6 +72,15 @@ class ConfReader
 			std::istringstream is(m_value, std::istringstream::in);
 			is >> tmp;
 			return tmp;
+		}
+		template <typename T>
+		uint32_t get(T *values, uint32_t max) {
+			std::vector<std::string> parts = Utils::split(m_value, ",");
+			for (uint32_t i = 0; i < parts.size() && i < max; i++) {
+				std::istringstream is(parts[i], std::istringstream::in);
+				is >> values[i];
+			}
+			return parts.size();
 		}
 
 	private:

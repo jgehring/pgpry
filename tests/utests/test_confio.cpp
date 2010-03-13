@@ -34,7 +34,10 @@ static void test_confio_read()
 		"# This is a comment\n" \
 		"number : 1\n" \
 		"double : 1.23\n" \
-		"string : bla\n";
+		"string : bla\n" \
+		"number_vector : 1,2,3\n" \
+		"double_vector : 1.23,2.34,-3.3\n" \
+		"string_vector : bla,blubb,blobb,plipp\n";
 	std::istringstream stream(in);
 
 	ConfReader reader(stream);
@@ -51,6 +54,42 @@ static void test_confio_read()
 			if (reader.get<std::string>() != "bla") {
 				throw Utils::strprintf("Invalid value for tag '%s' (expected '%s', got '%s')", reader.tag().c_str(), "bla", reader.get<std::string>().c_str());
 			}
+		} else if (reader.tag() == "number_vector") {
+			int numbers[3];
+			int n = reader.get<int>(numbers, 3);
+			if (n != 3) {
+				throw Utils::strprintf("Invalid value for tag '%s' (expected %d elements, got %d)", reader.tag().c_str(), 3, n);
+			}
+			int expected[3] = {1, 2, 3};
+			for (int i = 0; i < n; i++) {
+				if (numbers[i] != expected[i]) {
+					throw Utils::strprintf("Invalid value for tag '%s' (expected %d at position %d, got %d)", reader.tag().c_str(), expected[i], i, numbers[i]);
+				}
+			}
+		} else if (reader.tag() == "double_vector") {
+			double doubles[3];
+			int n = reader.get<double>(doubles, 3);
+			if (n != 3) {
+				throw Utils::strprintf("Invalid value for tag '%s' (expected %d elements, got %d)", reader.tag().c_str(), 3, n);
+			}
+			double expected[3] = {1.23, 2.34, -3.3};
+			for (int i = 0; i < n; i++) {
+				if (doubles[i] != expected[i]) {
+					throw Utils::strprintf("Invalid value for tag '%s' (expected %g at position %d, got %g)", reader.tag().c_str(), expected[i], i, doubles[i]);
+				}
+			}
+		} else if (reader.tag() == "string_vector") {
+			std::string strings[4];
+			int n = reader.get<std::string>(strings, 4);
+			if (n != 4) {
+				throw Utils::strprintf("Invalid value for tag '%s' (expected %d elements, got %d)", reader.tag().c_str(), 4, n);
+			}
+			std::string expected[4] = {"bla", "blubb", "blobb", "plipp"};
+			for (int i = 0; i < n; i++) {
+				if (strings[i] != expected[i]) {
+					throw Utils::strprintf("Invalid value for tag '%s' (expected '%s' at position %d, got '%s')", reader.tag().c_str(), expected[i].c_str(), i, strings[i].c_str());
+				}
+			}
 		} else {
 			throw Utils::strprintf("Unexpected tag: '%s'", reader.tag().c_str());
 		}
@@ -63,7 +102,10 @@ static void test_confio_write()
 		"# This is a comment\n" \
 		"number : 1\n" \
 		"double : 1.23\n" \
-		"string : bla\n";
+		"string : bla\n" \
+		"number_vector : 1,2,3\n" \
+		"double_vector : 1.23,2.34,-3.3\n" \
+		"string_vector : bla,blubb,blobb,plipp\n";
 
 	std::ostringstream stream;
 	ConfWriter writer(stream);
@@ -71,6 +113,12 @@ static void test_confio_write()
 	writer.put("number", 1);
 	writer.put("double", 1.23);
 	writer.put("string", "bla");
+	int numbers[] = {1, 2, 3};
+	writer.put("number_vector", numbers, 3);
+	double doubles[] = {1.23, 2.34, -3.3};
+	writer.put("double_vector", doubles, 3);
+	std::string strings[] = {"bla", "blubb", "blobb", "plipp"};
+	writer.put("string_vector", strings, 4);
 
 	if (stream.str() != out) {
 		throw Utils::strprintf("Output does not match:\n'%s' != '%s'", stream.str().c_str(), out.c_str());
