@@ -48,9 +48,10 @@ void Thread::start()
 // Blocks the current thread until this thread has finished
 void Thread::wait()
 {
-	assert(m_running == true);
-	pthread_join(m_pth, 0);
-	m_running = true;
+	if (m_running) {
+		pthread_join(m_pth, 0);
+		m_running = false;
+	}
 }
 
 // Executs the thread's run() function
