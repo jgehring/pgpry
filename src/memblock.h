@@ -30,6 +30,7 @@
 
 
 #include <cstring>
+#include <ostream>
 
 #include "main.h"
 
@@ -129,5 +130,12 @@ inline Memblock &Memblock::operator=(const Memblock &other)
 	return *this;
 }
 
+
+// Convenience functions
+inline std::ostream& operator<<(std::ostream &out, const Memblock &in)
+{
+	out << in.data;
+	return out;
+}
 
 #endif

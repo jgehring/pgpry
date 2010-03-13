@@ -92,7 +92,7 @@ int32_t Attack::run(const Key &key, const Options &options)
 	ctx->m_condition.wait(&ctx->m_mutex);
 
 	if (ctx->m_status == STATUS_SUCCESS) {
-		std::cout << "SUCCESS: Found pass phrase: '" << ctx->m_phrase.data << "'." << std::endl;
+		std::cout << "SUCCESS: Found pass phrase: '" << ctx->m_phrase << "'." << std::endl;
 	} else if (ctx->m_status == STATUS_EXHAUSTED) {
 		std::cout << "SORRY, the key space is exhausted. The attack failed." << std::endl;
 	} else { // STATUS_FAILURE
