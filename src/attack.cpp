@@ -248,6 +248,8 @@ std::vector<Guessers::Guesser *> Attack::setupGuessers(Buffer *out, const Option
 	if (g) {
 		g->setup(options.guesserOptions());
 		guessers.push_back(g);
+	} else {
+		std::cerr << "ERROR: No such guessing method: " << options.guesser() << std::endl;
 	}
 	return guessers;
 }
