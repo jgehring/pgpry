@@ -83,12 +83,12 @@ void Tester::run()
 			switch (Attack::status()) {
 				case Attack::STATUS_SUCCESS:
 					return;
-				case Attack::STATUS_FAILURE:
+				case Attack::STATUS_RUNNING:
+					break;
+				default:
 					if (blocks[0].length == 0) {
 						return;
 					}
-					break;
-				default:
 					break;
 			}
 			n = 0;
