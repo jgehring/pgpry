@@ -58,7 +58,7 @@ static bool tstr2int(const std::string &str, T *i)
 	long val = strtol(str.c_str(), &end, 0);
 
 	if (errno == ERANGE || str.c_str() == end
-		|| val > std::numeric_limits<int32_t>::max()
+	    || val > std::numeric_limits<int32_t>::max()
 	    || val < std::numeric_limits<int32_t>::min()) {
 		return false;
 	}

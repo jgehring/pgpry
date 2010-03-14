@@ -72,8 +72,8 @@ class Attack
 		Attack(const Options &options);
 
 		static std::vector<Guessers::Guesser *> setupGuessers(Buffer *out, const Options &options);
-        static std::vector<RegexFilter *> setupRegexFilters(Buffer *in, Buffer *out, const Options &options);
-        static std::vector<PrefixSuffixFilter *> setupPrefixSuffixFilters(Buffer *in, Buffer *out, const Options &options);
+		static std::vector<RegexFilter *> setupRegexFilters(Buffer *in, Buffer *out, const Options &options);
+		static std::vector<PrefixSuffixFilter *> setupPrefixSuffixFilters(Buffer *in, Buffer *out, const Options &options);
 		static std::vector<Tester *> setupTesters(const Key &key, Buffer *in, const Options &options);
 
 		void finish();
@@ -87,8 +87,8 @@ class Attack
 		Memblock m_phrase;
 		Buffer m_buffers[4];
 		std::vector<Guessers::Guesser *> m_guessers;
-        std::vector<RegexFilter *> m_regexFilters;
-        std::vector<PrefixSuffixFilter *> m_prefixSuffixFilters;
+		std::vector<RegexFilter *> m_regexFilters;
+		std::vector<PrefixSuffixFilter *> m_prefixSuffixFilters;
 		std::vector<Tester *> m_testers;
 		std::vector<SysUtils::Thread *> m_threads;
 		std::string m_errString;

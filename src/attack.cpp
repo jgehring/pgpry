@@ -94,12 +94,12 @@ int32_t Attack::run(const Key &key, const Options &options, ConfReader *reader)
 	}
 	ctx->m_threads.insert(ctx->m_threads.begin(), ctx->m_guessers.begin(), ctx->m_guessers.end());
 
-    if (options.useRegexFiltering()) {
+	if (options.useRegexFiltering()) {
 		ctx->m_regexFilters = setupRegexFilters(&ctx->m_buffers[bufferIndex], &ctx->m_buffers[bufferIndex+1], options);
 		ctx->m_threads.insert(ctx->m_threads.begin(), ctx->m_regexFilters.begin(), ctx->m_regexFilters.end());
 		++bufferIndex;
 	}
-    if (options.usePrefixSuffixFiltering()) {
+	if (options.usePrefixSuffixFiltering()) {
 		ctx->m_prefixSuffixFilters = setupPrefixSuffixFilters(&ctx->m_buffers[bufferIndex], &ctx->m_buffers[bufferIndex+1], options);
 		ctx->m_threads.insert(ctx->m_threads.begin(), ctx->m_prefixSuffixFilters.begin(), ctx->m_prefixSuffixFilters.end());
 		++bufferIndex;
@@ -275,26 +275,26 @@ std::vector<Guessers::Guesser *> Attack::setupGuessers(Buffer *out, const Option
 // Sets up the regular expression filters
 std::vector<RegexFilter *> Attack::setupRegexFilters(Buffer *in, Buffer *out, const Options &options)
 {
-    std::vector<RegexFilter *> filters;
+	std::vector<RegexFilter *> filters;
 	for (uint32_t i = 0; i < options.numRegexFilters(); i++) {
-        RegexFilter *r = new RegexFilter(in, out);
-        if (!r->readExpressions(options.regexFile())) {
-            break;
-        }
-        filters.push_back(r);
-    }
-    return filters;
+		RegexFilter *r = new RegexFilter(in, out);
+		if (!r->readExpressions(options.regexFile())) {
+			break;
+		}
+		filters.push_back(r);
+	}
+	return filters;
 }
 
 // Sets up the prefix/suffix filters
 std::vector<PrefixSuffixFilter *> Attack::setupPrefixSuffixFilters(Buffer *in, Buffer *out, const Options &options)
 {
-    std::vector<PrefixSuffixFilter *> filters;
+	std::vector<PrefixSuffixFilter *> filters;
 	PrefixSuffixFilter *r = new PrefixSuffixFilter(in, out);
 	r->setPrefixes(options.prefixes());
 	r->setSuffixes(options.suffixes());
 	filters.push_back(r);
-    return filters;
+	return filters;
 }
 
 // Sets up the pass phrase testers

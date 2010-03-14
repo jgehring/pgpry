@@ -64,11 +64,11 @@ void Options::printHelp() const
 	printOption("-l, --list-guessers", "List available guessing methods");
 	printOption("-g METHOD, --guesser=METHOD", "Use METHOD for guessing phrases");
 	printOption("-o OPTION1=VALUE1 OPTION2=VALUE2 ..., --options OPTION1=VALUE1 ...", "Set guessing options (name-value pairs)");
-    printOption("--regexes=FILE", "Read regular expressions from FILE");
+	printOption("--regexes=FILE", "Read regular expressions from FILE");
 	printOption("--prefixes=LIST", "Prepend prefixes from the comma-seperated LIST");
 	printOption("--suffixes=LIST", "Append suffixes from the comma-seperated LIST");
 	printOption("-j N, --jobs=N", "Use N cracker (phrase testing) jobs");
-    printOption("-r N, --regex-jobs=N", "Use N regular expression filtering jobs");
+	printOption("-r N, --regex-jobs=N", "Use N regular expression filtering jobs");
 	std::cout << std::endl;
 	std::cout << "The key data will be read from stdin." << std::endl;
 	std::cout << std::endl;
@@ -152,17 +152,17 @@ uint32_t Options::numTesters() const
 
 bool Options::useRegexFiltering() const
 {
-    return !m_regexFile.empty();
+	return !m_regexFile.empty();
 }
 
 std::string Options::regexFile() const
 {
-    return m_regexFile;
+	return m_regexFile;
 }
 
 uint32_t Options::numRegexFilters() const
 {
-    return m_numRegexFilters;
+	return m_numRegexFilters;
 }
 
 bool Options::usePrefixSuffixFiltering() const
@@ -231,25 +231,25 @@ void Options::parse(const std::vector<std::string> &args)
 			gopts = true;
 		} else if (args[i] == "-j" && i < args.size()-1) {
 			if (!Utils::str2int(args[++i], &m_numTesters)) {
-                throw Utils::strprintf("Number expected (got %s)", args[i].c_str());
+				throw Utils::strprintf("Number expected (got %s)", args[i].c_str());
 			}
 		} else if (!args[i].compare(0, 7, "--jobs=")) {
 			if (!Utils::str2int(args[i].substr(7), &m_numTesters)) {
-                throw Utils::strprintf("Number expected (got %s)", args[i].substr(7).c_str());
+				throw Utils::strprintf("Number expected (got %s)", args[i].substr(7).c_str());
 			}
-        } else if (!args[i].compare(0, 10, "--regexes=")) {
-            m_regexFile = args[i].substr(10);
+		} else if (!args[i].compare(0, 10, "--regexes=")) {
+			m_regexFile = args[i].substr(10);
 		} else if (!args[i].compare(0, 11, "--prefixes=")) {
-            m_prefixes = Utils::split(args[i].substr(11), ",");
+			m_prefixes = Utils::split(args[i].substr(11), ",");
 		} else if (!args[i].compare(0, 11, "--suffixes=")) {
-            m_suffixes = Utils::split(args[i].substr(11), ",");
-        } else if (args[i] == "-r" && i < args.size()-1) {
-            if (!Utils::str2int(args[++i], &m_numRegexFilters)) {
-                throw Utils::strprintf("Number expected (got %s)", args[i].c_str());
-            }
-        } else if (!args[i].compare(0, 13, "--regex-jobs=")) {
+			m_suffixes = Utils::split(args[i].substr(11), ",");
+		} else if (args[i] == "-r" && i < args.size()-1) {
+			if (!Utils::str2int(args[++i], &m_numRegexFilters)) {
+				throw Utils::strprintf("Number expected (got %s)", args[i].c_str());
+			}
+		} else if (!args[i].compare(0, 13, "--regex-jobs=")) {
 			if (!Utils::str2int(args[i].substr(13), &m_numRegexFilters)) {
-                throw Utils::strprintf("Number expected (got %s)", args[i].substr(13).c_str());
+				throw Utils::strprintf("Number expected (got %s)", args[i].substr(13).c_str());
 			}
 		} else {
 			throw Utils::strprintf("Unkown argument %s", args[i].c_str());
@@ -267,8 +267,8 @@ void Options::reset()
 	m_guesser = std::string();
 	m_guesserOptions.clear();
 	m_numTesters = 1;
-    m_regexFile = std::string();
-    m_numRegexFilters = 1;
+	m_regexFile = std::string();
+	m_numRegexFilters = 1;
 	m_prefixes.clear();
 	m_suffixes.clear();
 }
