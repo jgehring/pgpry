@@ -36,6 +36,10 @@
 #include "tester.h"
 
 
+// Minimum number of bits when checking the first BN
+#define MIN_BN_BITS 64
+
+
 // Constructor
 Tester::Tester(const Key &key, Buffer *buffer)
 	: Thread(), m_key(key), m_buffer(buffer), m_ivec(NULL), m_keydata(NULL),
@@ -88,6 +92,7 @@ void Tester::init()
 	m_blockSize = CryptUtils::blockSize(m_cipher);
 	m_keySize = CryptUtils::keySize(m_cipher);
 	m_digestSize = CryptUtils::digestSize(m_key.string2Key().hashAlgorithm());
+	m_bits = m_key.bits();
 
 	// m_ivec is a temporary initialization vector cache
 	uint32_t bs = CryptUtils::blockSize(m_cipher);
@@ -159,7 +164,7 @@ bool Tester::check(const Memblock &mblock)
 	}
 
 	uint32_t num_bits = ((m_out[0] << 8) | m_out[1]);
-	if (num_bits > m_key.bits()) {
+	if (num_bits < MIN_BN_BITS || num_bits > m_bits) {
 		return false;
 	}
 #endif
@@ -224,7 +229,7 @@ bool Tester::check(const Memblock &mblock)
 	// If the checksum is ok, try to parse the first MPI of the private key
 	if (checksumOk) {
 		BIGNUM *b = NULL;
-		uint32_t blen = (((m_out[0] << 8) | m_out[1]) + 7) / 8;
+		uint32_t blen = (num_bits + 7) / 8;
 		if (blen < m_datalen && BN_bin2bn(m_out + 2, blen, b) != NULL) {
 			BN_free(b);
 			return true;

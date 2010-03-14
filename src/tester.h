@@ -53,6 +53,7 @@ class Tester : public SysUtils::Thread
 		uint32_t m_blockSize;
 		uint32_t m_keySize;
 		uint32_t m_digestSize;
+		uint32_t m_bits;
 		uint8_t *m_ivec;
 		uint8_t *m_keydata;
 
