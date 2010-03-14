@@ -24,7 +24,7 @@
 
 #include <cassert>
 
-#include <unistd.h>
+#include <sys/time.h>
 
 #include "threads.h"
 
@@ -77,10 +77,30 @@ void Thread::abort()
 	m_mutex.unlock();
 }
 
-// usleep wrapper
+// Sleeping
 void Thread::msleep(int msecs)
 {
-	usleep(msecs * 1000);
+	// This is from Qt-4.6, qthread_unix.cpp
+	struct timeval tv;
+	gettimeofday(&tv, 0);
+
+	timespec ti;
+	ti.tv_nsec = (tv.tv_usec + (msecs % 1000) * 1000) * 1000;
+	ti.tv_sec = tv.tv_sec + (msecs / 1000) + (ti.tv_nsec / 1000000000);
+	ti.tv_nsec %= 1000000000;
+
+	pthread_mutex_t mtx;
+	pthread_cond_t cnd;
+
+	pthread_mutex_init(&mtx, 0);
+	pthread_cond_init(&cnd, 0);
+
+	pthread_mutex_lock(&mtx);
+	(void) pthread_cond_timedwait(&cnd, &mtx, &ti);
+	pthread_mutex_unlock(&mtx);
+
+	pthread_cond_destroy(&cnd);
+	pthread_mutex_destroy(&mtx);
 }
 
 // Checks if the abort flag is set
