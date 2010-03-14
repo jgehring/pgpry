@@ -146,6 +146,10 @@ int32_t Attack::run(const Key &key, const Options &options, ConfReader *reader)
 	// Now all we've got to do is wait
 	ctx->m_condition.wait(&ctx->m_mutex);
 
+	if (ctx->m_status == STATUS_SUCCESS) {
+		ctx->boilOut();
+	}
+
 	switch (ctx->m_status) {
 		case STATUS_SUCCESS:
 			std::cout << "SUCCESS: Found pass phrase: '" << ctx->m_phrase << "'." << std::endl;
@@ -178,11 +182,6 @@ void Attack::phraseFound(const Memblock &mblock)
 		ctx->m_mutex.lock();
 		ctx->m_status = STATUS_SUCCESS;
 		ctx->m_phrase = mblock;
-		ctx->m_mutex.unlock();
-
-		ctx->boilOut();
-
-		ctx->m_mutex.lock();
 		ctx->m_condition.wakeAll();
 		ctx->m_mutex.unlock();
 	} else {
@@ -328,7 +327,7 @@ void Attack::boilOut()
 
 	uint32_t bufferIndex = 0;
 	while (m_buffers[bufferIndex].size() > 0) {
-		SysUtils::Thread::msleep(10);
+		SysUtils::Thread::msleep(5);
 	}
 
 	if (m_options.useRegexFiltering()) {
@@ -344,7 +343,7 @@ void Attack::boilOut()
 
 		++bufferIndex;
 		while (m_buffers[bufferIndex].size() > 0) {
-			SysUtils::Thread::msleep(10);
+			SysUtils::Thread::msleep(5);
 		}
 	}
 
@@ -361,7 +360,7 @@ void Attack::boilOut()
 
 		++bufferIndex;
 		while (m_buffers[bufferIndex].size() > 0) {
-			SysUtils::Thread::msleep(10);
+			SysUtils::Thread::msleep(5);
 		}
 	}
 
