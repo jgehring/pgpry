@@ -82,9 +82,8 @@ void RegexFilter::run()
 {
 	Memblock m;
 	std::vector<SysUtils::Regex>::const_iterator it;
-    uint32_t n = 0;
 	bool valid;
-	while (true) {
+	while (!abortFlag()) {
 		m_in->take(&m);
 
 		valid = true;
@@ -103,22 +102,6 @@ void RegexFilter::run()
 
 		if (valid) {
 			m_out->put(m);
-		}
-
-		// Avoid constant status querying
-		if (++n > 128) {
-			switch (Attack::status()) {
-				case Attack::STATUS_SUCCESS:
-					return;
-				case Attack::STATUS_FAILURE:
-					if (m.length == 0) {
-						return;
-					}
-					break;
-				default:
-					break;
-			}
-			n = 0;
 		}
 	}
 }

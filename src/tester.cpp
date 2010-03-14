@@ -66,32 +66,16 @@ void Tester::run()
 		return;
 	}
 
-	uint32_t n = 0, numBlocks = 0;
+	uint32_t numBlocks = 0;
 	Memblock blocks[8];
 
-	while (true) {
+	while (!abortFlag()) {
 		numBlocks = m_buffer->taken(8, blocks);
 
 		for (uint32_t i = 0; i < numBlocks; i++) {
 			if (blocks[i].length > 0 && check(blocks[i])) {
 				Attack::phraseFound(blocks[i]);
 			}
-		}
-
-		// Avoid constant status querying
-		if (++n > 128) {
-			switch (Attack::status()) {
-				case Attack::STATUS_SUCCESS:
-					return;
-				case Attack::STATUS_RUNNING:
-					break;
-				default:
-					if (blocks[0].length == 0) {
-						return;
-					}
-					break;
-			}
-			n = 0;
 		}
 	}
 }

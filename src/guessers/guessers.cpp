@@ -95,7 +95,7 @@ void Guesser::run()
 	int32_t n = 0, numBlocks = 0;
 
 	Memblock blocks[8];
-	while (true) {
+	while (!abortFlag()) {
 		for (numBlocks = 0; numBlocks < 8; numBlocks++) {
 			if (!guess(&blocks[numBlocks])) {
 				break;
@@ -121,13 +121,6 @@ void Guesser::run()
 		if (numBlocks != 8) {
 			Attack::exhausted();
 			break;
-		}
-
-		// Avoid constant status querying
-		if (!(n & 0x7F)) {
-			if (Attack::status() != Attack::STATUS_RUNNING) {
-				break;
-			}
 		}
 	}
 }

@@ -26,11 +26,10 @@
 #include <iostream>
 #include <fstream>
 
-#include "buffer.h"
 #include "confio.h"
 #include "guessers.h"
-#include "key.h"
 #include "options.h"
+#include "prefixsuffixfilter.h"
 #include "regexfilter.h"
 #include "sysutils.h"
 #include "tester.h"
@@ -49,7 +48,6 @@ class AttackSigHandler : public SysUtils::SigHandler
 		AttackSigHandler(Attack *attack)
 			: m_attack(attack)
 		{
-
 		}
 
 	protected:
@@ -72,7 +70,7 @@ class AttackSigHandler : public SysUtils::SigHandler
 
 // Private constructor
 Attack::Attack(const Options &options)
-	: m_options(options), m_buffer(NULL)
+	: m_options(options)
 {
 
 }
@@ -89,23 +87,30 @@ int32_t Attack::run(const Key &key, const Options &options, ConfReader *reader)
 	ctx->m_status = STATUS_RUNNING;
 
 	// Setup threads
-	Buffer buffer, buffer2;
-	ctx->m_guessers = setupGuessers(&buffer, options);
+	uint32_t bufferIndex = 0;
+	ctx->m_guessers = setupGuessers(&ctx->m_buffers[bufferIndex], options);
 	if (ctx->m_guessers.empty()) {
 		return EXIT_FAILURE;
 	}
+	ctx->m_threads.insert(ctx->m_threads.begin(), ctx->m_guessers.begin(), ctx->m_guessers.end());
 
     if (options.useRegexFiltering()) {
-        ctx->m_regexFilters = setupRegexFilters(&buffer, &buffer2, options);
-        ctx->m_testers = setupTesters(key, &buffer2, options);
-    } else {
-        ctx->m_testers = setupTesters(key, &buffer, options);
-    }
+		ctx->m_regexFilters = setupRegexFilters(&ctx->m_buffers[bufferIndex], &ctx->m_buffers[bufferIndex+1], options);
+		ctx->m_threads.insert(ctx->m_threads.begin(), ctx->m_regexFilters.begin(), ctx->m_regexFilters.end());
+		++bufferIndex;
+	}
+    if (options.usePrefixSuffixFiltering()) {
+		ctx->m_prefixSuffixFilters = setupPrefixSuffixFilters(&ctx->m_buffers[bufferIndex], &ctx->m_buffers[bufferIndex+1], options);
+		ctx->m_threads.insert(ctx->m_threads.begin(), ctx->m_prefixSuffixFilters.begin(), ctx->m_prefixSuffixFilters.end());
+		++bufferIndex;
+	}
+
+	ctx->m_testers = setupTesters(key, &ctx->m_buffers[bufferIndex], options);
 	if (ctx->m_testers.empty()) {
 		return EXIT_FAILURE;
 	}
+	ctx->m_threads.insert(ctx->m_threads.begin(), ctx->m_testers.begin(), ctx->m_testers.end());
 
-	ctx->m_buffer = &buffer;
 	ctx->m_mutex.lock();
 
 	// Start signal handler
@@ -131,6 +136,9 @@ int32_t Attack::run(const Key &key, const Options &options, ConfReader *reader)
 	for (uint32_t i = 0; i < ctx->m_regexFilters.size(); i++) {
 		ctx->m_regexFilters[i]->start();
 	}
+	for (uint32_t i = 0; i < ctx->m_prefixSuffixFilters.size(); i++) {
+		ctx->m_prefixSuffixFilters[i]->start();
+	}
 	for (uint32_t i = 0; i < ctx->m_testers.size(); i++) {
 		ctx->m_testers[i]->start();
 	}
@@ -154,15 +162,9 @@ int32_t Attack::run(const Key &key, const Options &options, ConfReader *reader)
 
 	ctx->m_mutex.unlock();
 
-	// Wait for threads
-	for (uint32_t i = 0; i < ctx->m_testers.size(); i++) {
-		ctx->m_testers[i]->wait();
-	}
-	for (uint32_t i = 0; i < ctx->m_regexFilters.size(); i++) {
-		ctx->m_regexFilters[i]->wait();
-	}
-	for (uint32_t i = 0; i < ctx->m_guessers.size(); i++) {
-		ctx->m_guessers[i]->wait();
+	// Wait for the threads
+	for (uint32_t i = 0; i < ctx->m_threads.size(); i++) {
+		ctx->m_threads[i]->wait();
 	}
 
 	return (ctx->m_status == STATUS_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE);
@@ -172,13 +174,23 @@ int32_t Attack::run(const Key &key, const Options &options, ConfReader *reader)
 void Attack::phraseFound(const Memblock &mblock)
 {
 	// TODO: Check the solution once more by trying to unlock the key
+	if (status() == STATUS_RUNNING) {
+		ctx->m_mutex.lock();
+		ctx->m_status = STATUS_SUCCESS;
+		ctx->m_phrase = mblock;
+		ctx->m_mutex.unlock();
 
-	ctx->m_mutex.lock();
-	ctx->m_status = STATUS_SUCCESS;
+		ctx->boilOut();
 
-	ctx->m_phrase = mblock;
-	ctx->m_condition.wakeAll();
-	ctx->m_mutex.unlock();
+		ctx->m_mutex.lock();
+		ctx->m_condition.wakeAll();
+		ctx->m_mutex.unlock();
+	} else {
+		ctx->m_mutex.lock();
+		ctx->m_status = STATUS_SUCCESS;
+		ctx->m_phrase = mblock;
+		ctx->m_mutex.unlock();
+	}
 }
 
 // Called by a guesser if it's out of phrases
@@ -188,7 +200,7 @@ void Attack::exhausted()
 	ctx->m_status = STATUS_EXHAUSTED;
 	ctx->m_mutex.unlock();
 
-	ctx->fillBuffer();
+	ctx->boilOut(); // This could change the attack status
 
 	ctx->m_mutex.lock();
 	ctx->m_condition.wakeAll();
@@ -200,6 +212,11 @@ void Attack::error(const std::string &errString)
 {
 	ctx->m_mutex.lock();
 	ctx->m_status = STATUS_FAILURE;
+	ctx->m_mutex.unlock();
+
+	ctx->boilOut();
+
+	ctx->m_mutex.lock();
 	ctx->m_errString = errString;
 	ctx->m_condition.wakeAll();
 	ctx->m_mutex.unlock();
@@ -212,9 +229,11 @@ void Attack::saveAndAbort()
 	ctx->m_status = STATUS_ABORTED;
 	ctx->m_mutex.unlock();
 
-	ctx->fillBuffer();
-
 	// Wait for guessers and save their state
+	ctx->boilOut();
+
+	// TODO: Check for success?
+
 	std::ofstream out(PGPRY_STATEFILE);
 	ConfWriter *writer;
 	if (out.is_open()) {
@@ -268,6 +287,17 @@ std::vector<RegexFilter *> Attack::setupRegexFilters(Buffer *in, Buffer *out, co
     return filters;
 }
 
+// Sets up the prefix/suffix filters
+std::vector<PrefixSuffixFilter *> Attack::setupPrefixSuffixFilters(Buffer *in, Buffer *out, const Options &options)
+{
+    std::vector<PrefixSuffixFilter *> filters;
+	PrefixSuffixFilter *r = new PrefixSuffixFilter(in, out);
+	r->setPrefixes(options.prefixes());
+	r->setSuffixes(options.suffixes());
+	filters.push_back(r);
+    return filters;
+}
+
 // Sets up the pass phrase testers
 std::vector<Tester *> Attack::setupTesters(const Key &key, Buffer *in, const Options &options)
 {
@@ -278,12 +308,70 @@ std::vector<Tester *> Attack::setupTesters(const Key &key, Buffer *in, const Opt
 	return testers;
 }
 
-// Inserts empty memory blocks into the buffer. The tester thread will finish
-// if the attack status isn't RUNNING and it received an empty memory block from the buffer
-void Attack::fillBuffer()
+
+// Finishes the attack by telling all threads to quit
+void Attack::finish()
 {
-	uint32_t n = m_buffer->size();
-	for (uint32_t i = 0; i < n; i++) {
-		m_buffer->put(Memblock());
+	for (uint32_t i = 0; i < m_threads.size(); i++) {
+		m_threads[i]->abort();
+		m_threads[i]->wait();
+	}
+}
+
+// Boiling out of the current attack (handle all buffered phrases and finish)
+void Attack::boilOut()
+{
+	for (uint32_t i = 0; i < m_guessers.size(); i++) {
+		m_guessers[i]->abort();
+		m_guessers[i]->wait();
+	}
+
+	uint32_t bufferIndex = 0;
+	while (m_buffers[bufferIndex].size() > 0) {
+		SysUtils::Thread::msleep(10);
+	}
+
+	if (m_options.useRegexFiltering()) {
+		for (uint32_t i = 0; i < m_regexFilters.size(); i++) {
+			m_regexFilters[i]->abort();
+		}
+		for (uint32_t i = 0; i < m_buffers[bufferIndex].capacity(); i++) {
+			m_buffers[bufferIndex].put(Memblock());
+		}
+		for (uint32_t i = 0; i < m_regexFilters.size(); i++) {
+			m_regexFilters[i]->abort();
+		}
+
+		++bufferIndex;
+		while (m_buffers[bufferIndex].size() > 0) {
+			SysUtils::Thread::msleep(10);
+		}
+	}
+
+	if (m_options.usePrefixSuffixFiltering()) {
+		for (uint32_t i = 0; i < m_prefixSuffixFilters.size(); i++) {
+			m_prefixSuffixFilters[i]->abort();
+		}
+		for (uint32_t i = 0; i < m_buffers[bufferIndex].capacity(); i++) {
+			m_buffers[bufferIndex].put(Memblock());
+		}
+		for (uint32_t i = 0; i < m_prefixSuffixFilters.size(); i++) {
+			m_prefixSuffixFilters[i]->abort();
+		}
+
+		++bufferIndex;
+		while (m_buffers[bufferIndex].size() > 0) {
+			SysUtils::Thread::msleep(10);
+		}
+	}
+
+	for (uint32_t i = 0; i < m_testers.size(); i++) {
+		m_testers[i]->abort();
+	}
+	for (uint32_t i = 0; i < m_buffers[bufferIndex].capacity(); i++) {
+		m_buffers[bufferIndex].put(Memblock());
+	}
+	for (uint32_t i = 0; i < m_testers.size(); i++) {
+		m_testers[i]->wait();
 	}
 }

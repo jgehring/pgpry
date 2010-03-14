@@ -65,6 +65,8 @@ void Options::printHelp() const
 	printOption("-g METHOD, --guesser=METHOD", "Use METHOD for guessing phrases");
 	printOption("-o OPTION1=VALUE1 OPTION2=VALUE2 ..., --options OPTION1=VALUE1 ...", "Set guessing options (name-value pairs)");
     printOption("--regexes=FILE", "Read regular expressions from FILE");
+	printOption("--prefixes=LIST", "Prepend prefixes from the comma-seperated LIST");
+	printOption("--suffixes=LIST", "Append suffixes from the comma-seperated LIST");
 	printOption("-j N, --jobs=N", "Use N cracker (phrase testing) jobs");
     printOption("-r N, --regex-jobs=N", "Use N regular expression filtering jobs");
 	std::cout << std::endl;
@@ -163,6 +165,21 @@ uint32_t Options::numRegexFilters() const
     return m_numRegexFilters;
 }
 
+bool Options::usePrefixSuffixFiltering() const
+{
+	return (!m_prefixes.empty() || !m_suffixes.empty());
+}
+
+const std::vector<std::string> &Options::prefixes() const
+{
+	return m_prefixes;
+}
+
+const std::vector<std::string> &Options::suffixes() const
+{
+	return m_suffixes;
+}
+
 // Saves the current options
 void Options::save(ConfWriter *writer) const
 {
@@ -193,11 +210,12 @@ void Options::parse(const std::vector<std::string> &args)
 	for (size_t i = 1; i < args.size(); i++) {
 		if (gopts) {
 			std::string::size_type pos = args[i].find("=");
-			if (pos != std::string::npos) {
+			if (pos != std::string::npos && args[i].compare(0, 1, "-")) {
 				m_guesserOptions[args[i].substr(0, pos)] = args[i].substr(pos+1);
 				continue;
 			}
 		}
+		gopts = false;
 
 		if (args[i] == "-?" || args[i] == "-h" || args[i] == "--help") {
 			m_help = true;
@@ -221,6 +239,10 @@ void Options::parse(const std::vector<std::string> &args)
 			}
         } else if (!args[i].compare(0, 10, "--regexes=")) {
             m_regexFile = args[i].substr(10);
+		} else if (!args[i].compare(0, 11, "--prefixes=")) {
+            m_prefixes = Utils::split(args[i].substr(11), ",");
+		} else if (!args[i].compare(0, 11, "--suffixes=")) {
+            m_suffixes = Utils::split(args[i].substr(11), ",");
         } else if (args[i] == "-r" && i < args.size()-1) {
             if (!Utils::str2int(args[++i], &m_numRegexFilters)) {
                 throw Utils::strprintf("Number expected (got %s)", args[i].c_str());
@@ -247,6 +269,8 @@ void Options::reset()
 	m_numTesters = 1;
     m_regexFile = std::string();
     m_numRegexFilters = 1;
+	m_prefixes.clear();
+	m_suffixes.clear();
 }
 
 // Utility function for printing a help screen option

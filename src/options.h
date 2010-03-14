@@ -56,6 +56,9 @@ class Options
 		bool useRegexFiltering() const;
 		std::string regexFile() const;
 		uint32_t numRegexFilters() const;
+		bool usePrefixSuffixFiltering() const;
+		const std::vector<std::string> &prefixes() const;
+		const std::vector<std::string> &suffixes() const;
 
 		void save(ConfWriter *writer) const;
 		void load(ConfReader *reader);
@@ -75,6 +78,8 @@ class Options
 		uint32_t m_numTesters;
 		std::string m_regexFile;
 		uint32_t m_numRegexFilters;
+		std::vector<std::string> m_prefixes;
+		std::vector<std::string> m_suffixes;
 };
 
 
