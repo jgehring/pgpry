@@ -18,7 +18,7 @@
 
 /*
  * file: utest/test_utils.cpp
- * Unit tests for Utils namespace
+ * Unit tests for the Utils namespace
  */
 
 

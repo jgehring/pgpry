@@ -14,3 +14,7 @@ AT_CLEANUP()
 AT_SETUP([ConfReader and ConfWriter])
 AT_CHECK([utests confio])
 AT_CLEANUP()
+
+AT_SETUP([Memblock])
+AT_CHECK([utests memblock])
+AT_CLEANUP()

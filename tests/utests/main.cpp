@@ -33,6 +33,7 @@
 
 // Prototypes
 extern int test_confio(bool verbose);
+extern int test_memblock(bool verbose);
 extern int test_utils(bool verbose);
 
 
@@ -44,6 +45,7 @@ int main(int argc, char **argv)
 		int (*function)(bool verbose);
 	} units[] = {
 		{ "confio", test_confio },
+		{ "memblock", test_memblock },
 		{ "utils", test_utils }
 	};
 
@@ -64,12 +66,17 @@ int main(int argc, char **argv)
 		++index;
 	}
 
+	if (argc < index+1) {
+		std::cerr << "Error: Missing argument" << std::endl;
+		return EXIT_FAILURE;
+	}
+
 	for (unsigned int i = 0; i < sizeof(units) / sizeof(unit_t); i++) {
 		if (!strcmp(argv[index], units[i].name)) {
 			return (*units[i].function)(verbose);
 		}
 	}
 
-	std::cerr << "Error: No such unit: " << argv[1] << std::endl;
+	std::cerr << "Error: No such unit: " << argv[index] << std::endl;
 	return EXIT_SUCCESS;
 }

@@ -1,5 +1,8 @@
-*.class
+*.gcda
+*.gcno
+*.gcov
 *.jar
+*.class
 formats/keys
 package.m4
 testsuite
