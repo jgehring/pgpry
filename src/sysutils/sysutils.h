@@ -52,7 +52,7 @@ class Regex
 			return (regexec(&m_rx, str.c_str(), 0, NULL, 0) == 0);
 		}
 		bool matches(const Memblock &mblock) const {
-			return (regexec(&m_rx, (const char *)mblock.data, 0, NULL, 0) == 0);
+			return (mblock.data && regexec(&m_rx, (const char *)mblock.data, 0, NULL, 0) == 0);
 		}
 
 		Regex &operator=(const Regex &other);
