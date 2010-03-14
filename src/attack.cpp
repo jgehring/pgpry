@@ -58,8 +58,10 @@ class AttackSigHandler : public SysUtils::SigHandler
 
 		bool handle(int32_t sig)
 		{
-			std::cerr << "Interrupt catched, saving state..." << std::endl;
-			m_attack->saveAndAbort();
+			if (m_attack->status() == Attack::STATUS_RUNNING) {
+				std::cerr << "Interrupt catched, flushing buffers and saving state..." << std::endl;
+				m_attack->saveAndAbort();
+			}
 			return false;
 		}
 
@@ -146,10 +148,6 @@ int32_t Attack::run(const Key &key, const Options &options, ConfReader *reader)
 	// Now all we've got to do is wait
 	ctx->m_condition.wait(&ctx->m_mutex);
 
-	if (ctx->m_status == STATUS_SUCCESS) {
-		ctx->boilOut();
-	}
-
 	switch (ctx->m_status) {
 		case STATUS_SUCCESS:
 			std::cout << "SUCCESS: Found pass phrase: '" << ctx->m_phrase << "'." << std::endl;
@@ -157,7 +155,7 @@ int32_t Attack::run(const Key &key, const Options &options, ConfReader *reader)
 		case STATUS_EXHAUSTED:
 			std::cout << "SORRY, the key space is exhausted. The attack failed." << std::endl;
 			break;
-		case STATUS_FAILURE:
+		case STATUS_ERROR:
 			std::cout << "ERROR: " << ctx->m_errString << std::endl;
 			break;
 		default:
@@ -177,17 +175,13 @@ int32_t Attack::run(const Key &key, const Options &options, ConfReader *reader)
 // Called by a cracker which has discovered the pass phrase
 void Attack::phraseFound(const Memblock &mblock)
 {
-	// TODO: Check the solution once more by trying to unlock the key
-	if (status() == STATUS_RUNNING) {
-		ctx->m_mutex.lock();
-		ctx->m_status = STATUS_SUCCESS;
-		ctx->m_phrase = mblock;
-		ctx->m_condition.wakeAll();
+	ctx->m_mutex.lock();
+	ctx->m_phrase = mblock;
+	ctx->m_status = ((ctx->m_status & ~STATUS_MASK) | STATUS_SUCCESS);
+	if (!(ctx->m_status & STATUS_BOILING_OUT)) {
 		ctx->m_mutex.unlock();
+		ctx->boilOut();
 	} else {
-		ctx->m_mutex.lock();
-		ctx->m_status = STATUS_SUCCESS;
-		ctx->m_phrase = mblock;
 		ctx->m_mutex.unlock();
 	}
 }
@@ -196,13 +190,12 @@ void Attack::phraseFound(const Memblock &mblock)
 void Attack::exhausted()
 {
 	ctx->m_mutex.lock();
-	ctx->m_status = STATUS_EXHAUSTED;
+	ctx->m_status = ((ctx->m_status & ~STATUS_MASK) | STATUS_EXHAUSTED);
 	ctx->m_mutex.unlock();
 
 	ctx->boilOut(); // This could change the attack status
 
 	ctx->m_mutex.lock();
-	ctx->m_condition.wakeAll();
 	ctx->m_mutex.unlock();
 }
 
@@ -210,48 +203,25 @@ void Attack::exhausted()
 void Attack::error(const std::string &errString)
 {
 	ctx->m_mutex.lock();
-	ctx->m_status = STATUS_FAILURE;
+	ctx->m_status = ((ctx->m_status & ~STATUS_MASK) | STATUS_ERROR);
+	ctx->m_errString = errString;
 	ctx->m_mutex.unlock();
 
 	ctx->boilOut();
-
-	ctx->m_mutex.lock();
-	ctx->m_errString = errString;
-	ctx->m_condition.wakeAll();
-	ctx->m_mutex.unlock();
 }
 
 // Saves the current guesser state and aborts the attack
 void Attack::saveAndAbort()
 {
 	ctx->m_mutex.lock();
-	ctx->m_status = STATUS_ABORTED;
+	ctx->m_status = ((ctx->m_status & ~STATUS_MASK) | STATUS_ABORTED);
 	ctx->m_mutex.unlock();
 
 	// Wait for guessers and save their state
-	ctx->boilOut();
+	ctx->boilOut(false);
 
 	// TODO: Check for success?
-
-	std::ofstream out(PGPRY_STATEFILE);
-	ConfWriter *writer;
-	if (out.is_open()) {
-		writer = new ConfWriter(out);
-	} else {
-		writer = new ConfWriter(std::cout);
-	}
-	writer->putComment("");
-	writer->putComment(PACKAGE_NAME" "PACKAGE_VERSION" - State dump");
-	writer->putComment("");
-	writer->putComment("Command-line options");
-	ctx->m_options.save(writer);
-	writer->putComment("Guesser state");
-	for (uint32_t i = 0; i < ctx->m_guessers.size(); i++) {
-		ctx->m_guessers[i]->wait();
-		ctx->m_guessers[i]->saveState(writer);
-	}
-	delete writer;
-	out.close();
+	ctx->save();
 
 	ctx->m_mutex.lock();
 	ctx->m_condition.wakeAll();
@@ -307,19 +277,41 @@ std::vector<Tester *> Attack::setupTesters(const Key &key, Buffer *in, const Opt
 	return testers;
 }
 
-
-// Finishes the attack by telling all threads to quit
-void Attack::finish()
+// Saves the current attack state
+void Attack::save()
 {
-	for (uint32_t i = 0; i < m_threads.size(); i++) {
-		m_threads[i]->abort();
-		m_threads[i]->wait();
+	std::ofstream out(PGPRY_STATEFILE);
+	ConfWriter *writer;
+	if (out.is_open()) {
+		writer = new ConfWriter(out);
+	} else {
+		writer = new ConfWriter(std::cout);
 	}
+	writer->putComment("");
+	writer->putComment(PACKAGE_NAME" "PACKAGE_VERSION" - State dump");
+	writer->putComment("");
+	writer->putComment("Command-line options");
+	m_options.save(writer);
+	writer->putComment("Guesser state");
+	for (uint32_t i = 0; i < m_guessers.size(); i++) {
+		m_guessers[i]->wait();
+		m_guessers[i]->saveState(writer);
+	}
+	delete writer;
+	out.close();
 }
 
 // Boiling out of the current attack (handle all buffered phrases and finish)
-void Attack::boilOut()
+void Attack::boilOut(bool wakeAll)
 {
+	m_mutex.lock();
+	if (m_status & STATUS_BOILING_OUT) {
+		m_mutex.unlock();
+		return;
+	}
+	m_status |= STATUS_BOILING_OUT;
+	m_mutex.unlock();
+
 	for (uint32_t i = 0; i < m_guessers.size(); i++) {
 		m_guessers[i]->abort();
 		m_guessers[i]->wait();
@@ -338,7 +330,7 @@ void Attack::boilOut()
 			m_buffers[bufferIndex].put(Memblock());
 		}
 		for (uint32_t i = 0; i < m_regexFilters.size(); i++) {
-			m_regexFilters[i]->abort();
+			m_regexFilters[i]->wait();
 		}
 
 		++bufferIndex;
@@ -355,7 +347,7 @@ void Attack::boilOut()
 			m_buffers[bufferIndex].put(Memblock());
 		}
 		for (uint32_t i = 0; i < m_prefixSuffixFilters.size(); i++) {
-			m_prefixSuffixFilters[i]->abort();
+			m_prefixSuffixFilters[i]->wait();
 		}
 
 		++bufferIndex;
@@ -373,4 +365,11 @@ void Attack::boilOut()
 	for (uint32_t i = 0; i < m_testers.size(); i++) {
 		m_testers[i]->wait();
 	}
+
+	m_mutex.lock();
+	m_status &= ~STATUS_BOILING_OUT;
+	if (wakeAll) {
+		ctx->m_condition.wakeAll();
+	}
+	m_mutex.unlock();
 }

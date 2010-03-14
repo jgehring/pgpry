@@ -54,8 +54,10 @@ class Attack
 			STATUS_RUNNING = 0,
 			STATUS_SUCCESS = 1,
 			STATUS_EXHAUSTED = 2,
-			STATUS_FAILURE = 3,
-			STATUS_ABORTED = 4
+			STATUS_ERROR = 3,
+			STATUS_ABORTED = 4,
+			STATUS_BOILING_OUT = 0x80,
+			STATUS_MASK = 0x0F
 		};
 
 	public:
@@ -76,8 +78,8 @@ class Attack
 		static std::vector<PrefixSuffixFilter *> setupPrefixSuffixFilters(Buffer *in, Buffer *out, const Options &options);
 		static std::vector<Tester *> setupTesters(const Key &key, Buffer *in, const Options &options);
 
-		void finish();
-		void boilOut();
+		void save();
+		void boilOut(bool wakeAll = true);
 
 	private:
 		static Attack *ctx;
@@ -92,7 +94,7 @@ class Attack
 		std::vector<Tester *> m_testers;
 		std::vector<SysUtils::Thread *> m_threads;
 		std::string m_errString;
-		Status m_status;
+		int32_t m_status;
 		SysUtils::Mutex m_mutex;
 		SysUtils::WaitCondition m_condition;
 };
@@ -103,7 +105,7 @@ inline Attack::Status Attack::status()
 {
 	Status status;
 	ctx->m_mutex.lock();
-	status = ctx->m_status;
+	status = (Status)ctx->m_status;
 	ctx->m_mutex.unlock();
 	return status;
 }
