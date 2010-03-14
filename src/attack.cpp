@@ -148,6 +148,9 @@ int32_t Attack::run(const Key &key, const Options &options, ConfReader *reader)
 	// Now all we've got to do is wait
 	ctx->m_condition.wait(&ctx->m_mutex);
 
+	ctx->m_mutex.unlock();
+	ctx->boilOut();
+
 	switch (ctx->m_status) {
 		case STATUS_SUCCESS:
 			std::cout << "SUCCESS: Found pass phrase: '" << ctx->m_phrase << "'." << std::endl;
@@ -162,13 +165,6 @@ int32_t Attack::run(const Key &key, const Options &options, ConfReader *reader)
 			break;
 	}
 
-	ctx->m_mutex.unlock();
-
-	// Wait for the threads
-	for (uint32_t i = 0; i < ctx->m_threads.size(); i++) {
-		ctx->m_threads[i]->wait();
-	}
-
 	return (ctx->m_status == STATUS_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE);
 }
 
@@ -176,14 +172,10 @@ int32_t Attack::run(const Key &key, const Options &options, ConfReader *reader)
 void Attack::phraseFound(const Memblock &mblock)
 {
 	ctx->m_mutex.lock();
-	ctx->m_phrase = mblock;
 	ctx->m_status = ((ctx->m_status & ~STATUS_MASK) | STATUS_SUCCESS);
-	if (!(ctx->m_status & STATUS_BOILING_OUT)) {
-		ctx->m_mutex.unlock();
-		ctx->boilOut();
-	} else {
-		ctx->m_mutex.unlock();
-	}
+	ctx->m_phrase = mblock;
+	ctx->m_condition.wakeAll();
+	ctx->m_mutex.unlock();
 }
 
 // Called by a guesser if it's out of phrases
@@ -191,11 +183,7 @@ void Attack::exhausted()
 {
 	ctx->m_mutex.lock();
 	ctx->m_status = ((ctx->m_status & ~STATUS_MASK) | STATUS_EXHAUSTED);
-	ctx->m_mutex.unlock();
-
-	ctx->boilOut(); // This could change the attack status
-
-	ctx->m_mutex.lock();
+	ctx->m_condition.wakeAll();
 	ctx->m_mutex.unlock();
 }
 
@@ -205,25 +193,24 @@ void Attack::error(const std::string &errString)
 	ctx->m_mutex.lock();
 	ctx->m_status = ((ctx->m_status & ~STATUS_MASK) | STATUS_ERROR);
 	ctx->m_errString = errString;
+	ctx->m_condition.wakeAll();
 	ctx->m_mutex.unlock();
-
-	ctx->boilOut();
 }
 
 // Saves the current guesser state and aborts the attack
 void Attack::saveAndAbort()
 {
-	ctx->m_mutex.lock();
-	ctx->m_status = ((ctx->m_status & ~STATUS_MASK) | STATUS_ABORTED);
-	ctx->m_mutex.unlock();
-
-	// Wait for guessers and save their state
-	ctx->boilOut(false);
+	// Abort gueesser threads
+	for (uint32_t i = 0; i < ctx->m_guessers.size(); i++) {
+		ctx->m_guessers[i]->abort();
+		ctx->m_guessers[i]->wait();
+	}
 
 	// TODO: Check for success?
 	ctx->save();
 
 	ctx->m_mutex.lock();
+	ctx->m_status = ((ctx->m_status & ~STATUS_MASK) | STATUS_ABORTED);
 	ctx->m_condition.wakeAll();
 	ctx->m_mutex.unlock();
 }
@@ -302,7 +289,7 @@ void Attack::save()
 }
 
 // Boiling out of the current attack (handle all buffered phrases and finish)
-void Attack::boilOut(bool wakeAll)
+void Attack::boilOut()
 {
 	m_mutex.lock();
 	if (m_status & STATUS_BOILING_OUT) {
@@ -368,8 +355,5 @@ void Attack::boilOut(bool wakeAll)
 
 	m_mutex.lock();
 	m_status &= ~STATUS_BOILING_OUT;
-	if (wakeAll) {
-		ctx->m_condition.wakeAll();
-	}
 	m_mutex.unlock();
 }

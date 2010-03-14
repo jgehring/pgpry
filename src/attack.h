@@ -79,7 +79,7 @@ class Attack
 		static std::vector<Tester *> setupTesters(const Key &key, Buffer *in, const Options &options);
 
 		void save();
-		void boilOut(bool wakeAll = true);
+		void boilOut();
 
 	private:
 		static Attack *ctx;
