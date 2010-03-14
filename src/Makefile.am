@@ -56,3 +56,6 @@ pgpry_SOURCES += \
 	3rdparty/block-sha1/block-sha1.h 3rdparty/block-sha1/block-sha1.cpp
 AM_CPPFLAGS += -DUSE_BLOCK_SHA1
 endif
+
+EXTRA_DIST = \
+	3rdparty/block-sha1/COPYING

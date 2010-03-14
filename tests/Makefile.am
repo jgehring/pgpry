@@ -37,3 +37,10 @@ $(TESTSUITE): $(srcdir)/testsuite.at $(srcdir)/package.m4
 	mv $@.tmp $@
 
 SUBDIRS = utests
+
+EXTRA_DIST += \
+	check_formats.pl \
+	formats/README \
+	formats/genkeys.java \
+	formats/genkeys.sh \
+	formats/keys.tar.bz2
