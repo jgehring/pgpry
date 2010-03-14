@@ -46,6 +46,7 @@ class Memblock
 		void resize(uint32_t n);
 
 		Memblock &operator=(const Memblock &other);
+		Memblock &operator+=(const Memblock &other);
 
 	public: // By intention
 		uint8_t *data;
@@ -127,6 +128,18 @@ inline Memblock &Memblock::operator=(const Memblock &other)
 
 	memcpy(data, other.data, other.length);
 	length = other.length;
+	return *this;
+}
+
+inline Memblock &Memblock::operator+=(const Memblock &other)
+{
+	if (this == &other || other.data == NULL || other.length == 0) {
+		return *this;
+	}
+
+	uint32_t oldlen = length;
+	resize(length + other.length);
+	memcpy(data + oldlen, other.data, other.length);
 	return *this;
 }
 
