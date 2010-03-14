@@ -86,7 +86,7 @@ inline void Buffer::put(const Memblock &m)
 
 inline uint32_t Buffer::putn(uint32_t n, const Memblock *m)
 {
-	n = m_free.maxAcquire(n);
+	m_free.acquire(n);
 	m_mutex.lock();
 
 	for (uint32_t i = 0; i < n; i++) {
