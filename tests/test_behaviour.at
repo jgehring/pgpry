@@ -7,5 +7,5 @@
 
 AT_BANNER([Whole-program behaviour])
 AT_SETUP([Supported Formats])
-AT_CHECK([check_formats.pl])
+AT_CHECK([formats-check.pl ../../formats-keys.tar.bz2])
 AT_CLEANUP()

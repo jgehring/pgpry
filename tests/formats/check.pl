@@ -4,10 +4,7 @@
 # Copyright (C) 2010 Jonas Gehring
 #
 
-use strict;
-use warnings;
-
-my $archive="../../formats/keys.tar.bz2";
+my $archive = $ARGV[0];
 my $charset="1234567890";  # Character set used for the test key passwords
 
 # Let's go

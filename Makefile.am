@@ -4,3 +4,5 @@
 #
 
 SUBDIRS = src tests
+
+EXTRA_DIST = docs/rfc4880.txt

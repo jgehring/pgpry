@@ -16,8 +16,30 @@ $(srcdir)/package.m4: $(top_srcdir)/configure.ac
 		echo '  [@PACKAGE_URL@])'; \
 	} >'$(srcdir)/package.m4'
 
-EXTRA_DIST = testsuite.at $(srcdir)/package.m4 $(TESTSUITE) atlocal.in
+SUBDIRS = utests
+
+EXTRA_DIST = \
+	testsuite.at \
+	test_behaviour.at \
+	test_units.at \
+	$(srcdir)/package.m4 \
+	$(TESTSUITE) \
+	atlocal.in \
+	formats/README \
+	formats/check.pl \
+	formats/genkeys.java \
+	formats/genkeys.sh \
+	formats/keys.tar.bz2
+
 TESTSUITE = $(srcdir)/testsuite
+
+# This should fix VPATH builds
+formats-check.pl: formats/check.pl
+	cp $(srcdir)/formats/check.pl formats-check.pl
+formats-keys.tar.bz2: formats/keys.tar.bz2
+	cp $(srcdir)/formats/keys.tar.bz2 formats-keys.tar.bz2
+all-local: formats-check.pl formats-keys.tar.bz2
+CLEANFILES = formats-check.pl formats-keys.tar.bz2 atconfig
 
 check-local: atconfig atlocal $(TESTSUITE)
 	$(SHELL) '$(TESTSUITE)' $(TESTSUITEFLAGS)
@@ -35,12 +57,3 @@ AUTOTEST = $(AUTOM4TE) --language=autotest
 $(TESTSUITE): $(srcdir)/testsuite.at $(srcdir)/package.m4
 	$(AUTOTEST) -I '$(srcdir)' -o $@.tmp $@.at
 	mv $@.tmp $@
-
-SUBDIRS = utests
-
-EXTRA_DIST += \
-	check_formats.pl \
-	formats/README \
-	formats/genkeys.java \
-	formats/genkeys.sh \
-	formats/keys.tar.bz2
