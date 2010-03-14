@@ -90,7 +90,7 @@ void PrefixSuffixFilter::run()
 				buffer += prefixBlocks[i];
 				for (uint32_t j = 0; j < m_suffixes.size(); j++) {
 					buffer2 = buffer;
-					buffer2 += suffixBlocks[i];
+					buffer2 += suffixBlocks[j];
 					m_out->put(buffer2);
 				}
 			}
