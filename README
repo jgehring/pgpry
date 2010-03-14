@@ -1,0 +1,99 @@
+pgpry - PGP private key recovery
+Copyright (C) 2010 Jonas Gehring
+================================
+
+
+pgpry is a Pthread-based password recovery program for private OpenPGP
+keys.  It reads private key data from stdin and performs a brute-force
+attack in order to recover the pass phrase. Numerous options for
+restricting the key space are offered, including regular expression
+filtering and prefix/suffix filters.
+
+
+FEATURES
+--------
+
+  - Guessing based on a dictionary or a character set (incremental
+    and random guessing)
+  - State saving and restoring (for incremental guessing)
+  - Regular expression filtering
+  - Addition of prefixes/suffixes to the guessed words
+  - Parsing of binary and ASCII-armored OpenPGP data
+
+
+DEPENDENCIES
+------------
+
+pgpry utilizes the following libraries:
+
+  - OpenSSL (libcrypto, libssl)
+  - POSIX threads (libpthread)
+  - Standard C++ runtime (libstdc++)
+
+These are compile-time as well as run-time dependencies.
+
+
+USAGE INFORMATION
+-----------------
+
+For general usage information, run pgpry with "--help". More specific
+usage instructions follow.
+
+  - Regular expression filtering:
+    Regular expressions are read from the file name supplied via the
+    respective command line argument. The following format is used
+    (indentation added for clarity):
+
+      + $POSITIVE_REGEX
+      - $NEGATIVE_REGEX
+      ...
+
+    A pass phrase will be tested if it matches all positive expressions
+    and doesn't match any negative expression.
+
+  - Prefix/Suffix filtering:
+    Regular expression filtering can be time-consuming. If possible
+    prefixes or suffixes are known, they can be passed as command-line
+    arguments instead.
+
+
+OPTIONAL FEATURES
+-----------------
+
+pgpry ships with optional features. They aren't included in the default
+build since they either depend on specific hardware or are licensed
+under a different model then pgpry.  All of those features can be enabled
+using the configure script shipping with the source distribution. Here's
+a detailed listing of the currently offered optional features:
+
+  - block-sha1 (--enable-block-sha1):
+    Use the fast SHA1 algorithm from the git distribution, written by
+    Linus Torvalds.  This algorithm should be faster than those included
+    in the OpenSSL distribution. However, it is licensed under the GPL
+    version 2, whereas pgpry is licensed under version 3. Please see
+    src/3rdparty/block-sha1/COPYING for further information.
+
+
+AUTHOR
+------
+Jonas Gehring <jonas.gehring@boolsoft.org>
+
+
+LICENSE
+-------
+
+pgpry - PGP private key recovery
+Copyright (C) 2010 Jonas Gehring
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.

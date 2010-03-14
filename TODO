@@ -7,3 +7,4 @@ Future work:
  - Add networking support
  - Add CUDA/OpenCL support
  - Add missing algorithms: DES, Triple-DES and Twofish, MD5, RIPE-MD, SHA >= 256
+ - Add single-core mode (one single thread)
