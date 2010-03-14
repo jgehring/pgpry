@@ -26,6 +26,8 @@
 #include <cstring>
 #include <iostream>
 
+#include <openssl/md5.h>
+
 #include "memblock.h"
 #include "packetheader.h"
 #include "pistream.h"
@@ -65,6 +67,25 @@ class S2KSimpleSHA1Generator : public S2KGenerator
 		}
 };
 
+class S2KSimpleMD5Generator : public S2KGenerator
+{
+	public:
+		void genkey(const Memblock &string, uint8_t *key, uint32_t length) const
+		{
+			MD5_CTX ctx;
+			uint32_t numHashes = (length + MD5_DIGEST_LENGTH - 1) / MD5_DIGEST_LENGTH;
+
+			for (uint32_t i = 0; i < numHashes; i++) {
+				MD5_Init(&ctx);
+				for (uint32_t j = 0; j < i; j++) {
+					MD5_Update(&ctx, "\0", 1);
+				}
+				MD5_Update(&ctx, string.data, string.length);
+				MD5_Final(key + (i * MD5_DIGEST_LENGTH), &ctx);
+			}
+		}
+};
+
 // "Salted" generators
 class S2KSaltedGenerator : public S2KGenerator
 {
@@ -96,6 +117,28 @@ class S2KSaltedSHA1Generator : public S2KSaltedGenerator
 				pgpry_SHA1_Update(&ctx, m_salt, 8);
 				pgpry_SHA1_Update(&ctx, string.data, string.length);
 				pgpry_SHA1_Final(key + (i * SHA_DIGEST_LENGTH), &ctx);
+			}
+		}
+};
+
+class S2KSaltedMD5Generator : public S2KSaltedGenerator
+{
+	public:
+		S2KSaltedMD5Generator(const uint8_t salt[8]) : S2KSaltedGenerator(salt) { }
+
+		void genkey(const Memblock &string, uint8_t *key, uint32_t length) const
+		{
+			MD5_CTX ctx;
+			uint32_t numHashes = (length + MD5_DIGEST_LENGTH - 1) / MD5_DIGEST_LENGTH;
+
+			for (uint32_t i = 0; i < numHashes; i++) {
+				MD5_Init(&ctx);
+				for (uint32_t j = 0; j < i; j++) {
+					MD5_Update(&ctx, "\0", 1);
+				}
+				MD5_Update(&ctx, m_salt, 8);
+				MD5_Update(&ctx, string.data, string.length);
+				MD5_Final(key + (i * MD5_DIGEST_LENGTH), &ctx);
 			}
 		}
 };
@@ -158,6 +201,60 @@ class S2KItSaltedSHA1Generator : public S2KItSaltedGenerator
 				pgpry_SHA1_Update(&ctx, m_keybuf, m_count % bs);
 
 				pgpry_SHA1_Final(key + (i * SHA_DIGEST_LENGTH), &ctx);
+			}
+		}
+
+	private:
+		mutable uint8_t *m_keybuf;
+};
+
+class S2KItSaltedMD5Generator : public S2KItSaltedGenerator
+{
+	public:
+		S2KItSaltedMD5Generator(const uint8_t salt[8], uint32_t count)
+			: S2KItSaltedGenerator(salt, count)
+		{
+			m_keybuf = new uint8_t[KEYBUFFER_LENGTH];
+			memcpy(m_keybuf, m_salt, 8);
+		}
+		~S2KItSaltedMD5Generator() { delete[] m_keybuf; }
+
+		void genkey(const Memblock &string, uint8_t *key, uint32_t length) const
+		{
+			MD5_CTX ctx;
+			uint32_t numHashes = (length + MD5_DIGEST_LENGTH - 1) / MD5_DIGEST_LENGTH;
+
+			// TODO: This is not very efficient with multiple hashes
+			for (uint32_t i = 0; i < numHashes; i++) {
+				MD5_Init(&ctx);
+				for (uint32_t j = 0; j < i; j++) {
+					MD5_Update(&ctx, "\0", 1);
+				}
+
+				// Find multiplicator
+				int32_t tl = string.length + 8;
+				int32_t mul = 1;
+				while (mul < tl && ((64 * mul) % tl)) {
+					++mul;
+				}
+
+				// Try to feed the hash function with 64-byte blocks
+				const int32_t bs = mul * 64;
+				assert(bs <= KEYBUFFER_LENGTH);
+				uint8_t *bptr = m_keybuf + tl;
+				int32_t n = bs / tl;
+				memcpy(m_keybuf + 8, string.data, string.length);
+				while (n-- > 1) {
+					memcpy(bptr, m_keybuf, tl);
+					bptr += tl;
+				}
+				n = m_count / bs;
+				while (n-- > 0) {
+					MD5_Update(&ctx, m_keybuf, bs);
+				}
+				MD5_Update(&ctx, m_keybuf, m_count % bs);
+
+				MD5_Final(key + (i * MD5_DIGEST_LENGTH), &ctx);
 			}
 		}
 
@@ -306,6 +403,9 @@ void String2Key::setupGenerator() const
 	{
 		case SPEC_ITERATED_SALTED: {
 			switch (m_hashAlgorithm) {
+				case CryptUtils::HASH_MD5:
+					m_keygen = new S2KItSaltedMD5Generator(m_salt, m_count);
+					break;
 				case CryptUtils::HASH_SHA1:
 					m_keygen = new S2KItSaltedSHA1Generator(m_salt, m_count);
 					break;
@@ -316,6 +416,9 @@ void String2Key::setupGenerator() const
 
 		case SPEC_SALTED: {
 			switch (m_hashAlgorithm) {
+				case CryptUtils::HASH_MD5:
+					m_keygen = new S2KSaltedMD5Generator(m_salt);
+					break;
 				case CryptUtils::HASH_SHA1:
 					m_keygen = new S2KSaltedSHA1Generator(m_salt);
 					break;
@@ -326,6 +429,9 @@ void String2Key::setupGenerator() const
 
 		case SPEC_SIMPLE: {
 			switch (m_hashAlgorithm) {
+				case CryptUtils::HASH_MD5:
+					m_keygen = new S2KSimpleMD5Generator();
+					break;
 				case CryptUtils::HASH_SHA1:
 					m_keygen = new S2KSimpleSHA1Generator();
 					break;
