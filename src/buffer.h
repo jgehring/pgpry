@@ -37,6 +37,7 @@ class Buffer
 		~Buffer();
 
 		uint32_t size();
+		uint32_t capacity();
 
 		void put(const Memblock &m);
 		uint32_t putn(uint32_t n, const Memblock *m);
@@ -59,9 +60,14 @@ inline uint32_t Buffer::size()
 {
 	uint32_t t;
 	m_mutex.lock();
-	t = m_size;
+	t = m_used.available();
 	m_mutex.unlock();
 	return t;
+}
+
+inline uint32_t Buffer::capacity()
+{
+	return m_size;
 }
 
 inline void Buffer::put(const Memblock &m)
@@ -80,7 +86,7 @@ inline void Buffer::put(const Memblock &m)
 
 inline uint32_t Buffer::putn(uint32_t n, const Memblock *m)
 {
-	m_free.acquire(n);
+	n = m_free.maxAcquire(n);
 	m_mutex.lock();
 
 	for (uint32_t i = 0; i < n; i++) {
@@ -111,7 +117,7 @@ inline void Buffer::take(Memblock *m)
 
 inline uint32_t Buffer::taken(uint32_t n, Memblock *m)
 {
-	m_used.acquire(n);
+	n = m_used.maxAcquire(n);
 	m_mutex.lock();
 
 	for (uint32_t i = 0; i < n; i++) {
