@@ -149,7 +149,9 @@ int32_t Attack::run(const Key &key, const Options &options, ConfReader *reader)
 	ctx->m_condition.wait(&ctx->m_mutex);
 
 	ctx->m_mutex.unlock();
-	ctx->boilOut();
+	if (!(ctx->m_status & STATUS_ERROR)) {
+		ctx->boilOut();
+	}
 
 	switch (ctx->m_status) {
 		case STATUS_SUCCESS:
