@@ -35,27 +35,6 @@
 namespace SysUtils
 {
 
-class Thread
-{
-	public:
-		Thread();
-		virtual ~Thread() { }
-
-		void start();
-		void wait();
-
-	protected:
-		virtual void run() = 0;
-
-	private:
-		static void *main(void *obj);
-
-	private:
-		pthread_t m_pth;
-		volatile bool m_running;
-};
-
-
 class Mutex
 {
 	friend class WaitCondition;
@@ -73,6 +52,34 @@ class Mutex
 
 	private:
 		pthread_mutex_t m_pmx;
+};
+
+
+class Thread
+{
+	public:
+		Thread();
+		virtual ~Thread() { }
+
+		void start();
+		void abort();
+		void wait();
+
+		static void msleep(int msecs);
+
+	protected:
+		virtual void run() = 0;
+
+		bool abortFlag();
+
+	private:
+		static void *main(void *obj);
+
+	private:
+		pthread_t m_pth;
+		volatile bool m_running;
+		Mutex m_mutex;
+		bool m_abort;
 };
 
 
@@ -103,6 +110,14 @@ class Semaphore
 		Semaphore(uint32_t n = 0);
 		~Semaphore();
 
+		inline int32_t available() {
+			int32_t t;
+			pthread_mutex_lock(&m_mutex);
+			t = m_avail;
+			pthread_mutex_unlock(&m_mutex);
+			return t;
+		}
+
 		inline void acquire(int32_t n = 1) {
 			pthread_mutex_lock(&m_mutex);
 			while (n > m_avail) {
@@ -110,6 +125,22 @@ class Semaphore
 			}
 			m_avail -= n;
 			pthread_mutex_unlock(&m_mutex);
+		}
+		inline int32_t maxAcquire(int32_t n = 1) {
+			int32_t ac;
+			pthread_mutex_lock(&m_mutex);
+			while (1 > m_avail) {
+				pthread_cond_wait(&m_cond, &m_mutex);
+			}
+			if (m_avail > n) {
+				ac = n;
+				m_avail -= n;
+			} else {
+				ac = m_avail;
+				m_avail = 0;
+			}
+			pthread_mutex_unlock(&m_mutex);
+			return ac;
 		}
 		inline void release(int32_t n = 1) {
 			pthread_mutex_lock(&m_mutex);

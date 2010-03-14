@@ -24,6 +24,8 @@
 
 #include <cassert>
 
+#include <unistd.h>
+
 #include "threads.h"
 
 
@@ -31,8 +33,21 @@ namespace SysUtils
 {
 
 // Constructor
+Mutex::Mutex()
+{
+	pthread_mutex_init(&m_pmx, NULL);
+}
+
+// Destructor
+Mutex::~Mutex()
+{
+	pthread_mutex_destroy(&m_pmx);
+}
+
+
+// Constructor
 Thread::Thread()
-	: m_running(false)
+	: m_running(false), m_abort(false)
 {
 
 }
@@ -54,24 +69,36 @@ void Thread::wait()
 	}
 }
 
+// Sets the abort flag
+void Thread::abort()
+{
+	m_mutex.lock();
+	m_abort = true;
+	m_mutex.unlock();
+}
+
+// usleep wrapper
+void Thread::msleep(int msecs)
+{
+	usleep(msecs * 1000);
+}
+
+// Checks if the abort flag is set
+bool Thread::abortFlag()
+{
+	bool t;
+	m_mutex.lock();
+	t = m_abort;
+	m_mutex.unlock();
+	return t;
+}
+
 // Executs the thread's run() function
 void *Thread::main(void *obj)
 {
 	reinterpret_cast<Thread *>(obj)->run();
+	reinterpret_cast<Thread *>(obj)->m_running = false;
 	return NULL;
-}
-
-
-// Constructor
-Mutex::Mutex()
-{
-	pthread_mutex_init(&m_pmx, NULL);
-}
-
-// Destructor
-Mutex::~Mutex()
-{
-	pthread_mutex_destroy(&m_pmx);
 }
 
 
