@@ -202,11 +202,12 @@ bool Tester::check(const Memblock &mblock)
 	bool checksumOk = false;
 	switch (s2k.usage()) {
 		case 254: {
+			uint8_t checksum[SHA_DIGEST_LENGTH];
 			pgpry_SHA_CTX ctx;
 			pgpry_SHA1_Init(&ctx);
 			pgpry_SHA1_Update(&ctx, m_out, m_datalen - SHA_DIGEST_LENGTH);
-			pgpry_SHA1_Final(m_keydata, &ctx);
-			if (memcmp(m_keydata, m_out + m_datalen - SHA_DIGEST_LENGTH, SHA_DIGEST_LENGTH) == 0) {
+			pgpry_SHA1_Final(checksum, &ctx);
+			if (memcmp(checksum, m_out + m_datalen - SHA_DIGEST_LENGTH, SHA_DIGEST_LENGTH) == 0) {
 				checksumOk = true;
 			}
 		} break;
