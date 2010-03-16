@@ -20,7 +20,7 @@ while (<TAR>) {
 	# DES, Triple-DES and Twofish are not supported yet
 	next if /\/des[^\/]*$/ or /\/triple_des[^\/]*$/ or /\/twofish[^\/]*$/;
 	my $key = $_;
-	system("tar --to-stdout -xjf $archive $key | pgpry -o charset=$charset > /dev/null") == 0
+	system("tar --to-stdout -xjf $archive $key | pgpry --no-resume -o charset=$charset > /dev/null") == 0
 		or die("pgpry failed for key $key");
 }
 close(TAR);

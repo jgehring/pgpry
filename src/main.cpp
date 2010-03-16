@@ -42,13 +42,14 @@ int main(int argc, char **argv)
 	// Check if there's a state file
 	std::ifstream in(PGPRY_STATEFILE);
 	try {
-		if (in.is_open()) {
+		// Parse command line options first
+		options.parse(argc, argv);
+
+		// Load state file if allowed and possible
+		if (options.mayResume() && in.is_open()) {
 			std::cout << "State file found, resuming attack" << std::endl;
 			reader = new ConfReader(in);
 			options.load(reader);
-		} else {
-			// Parse command line options
-			options.parse(argc, argv);
 		}
 	} catch (const std::string &str) {
 		std::cerr << "Error parsing arguments: " << str << std::endl;

@@ -50,6 +50,7 @@ class Options
 		bool helpRequested() const;
 		bool versionRequested() const;
 		bool guesserListRequested() const;
+		bool mayResume() const;
 		std::string guesser() const;
 		const std::map<std::string, std::string> &guesserOptions() const;
 		uint32_t numTesters() const;
@@ -73,6 +74,7 @@ class Options
 		bool m_help;
 		bool m_version;
 		bool m_listGuessers;
+		bool m_mayResume;
 		std::string m_guesser;
 		std::map<std::string, std::string> m_guesserOptions;
 		uint32_t m_numTesters;

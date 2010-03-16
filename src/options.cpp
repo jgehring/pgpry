@@ -55,7 +55,7 @@ void Options::printHelp() const
 		printGuesserHelp(m_guesser);
 		return;
 	}
-	
+
 	std::cout << "USAGE: " << PACKAGE_NAME << " [options]" << std::endl;
 	std::cout << std::endl;
 	std::cout << "Valid options:" << std::endl;
@@ -69,6 +69,7 @@ void Options::printHelp() const
 	printOption("--suffixes=LIST", "Append suffixes from the comma-seperated LIST");
 	printOption("-j N, --jobs=N", "Use N cracker (phrase testing) jobs");
 	printOption("-r N, --regex-jobs=N", "Use N regular expression filtering jobs");
+	printOption("--no-resume", "Always start a new attack");
 	std::cout << std::endl;
 	std::cout << "The key data will be read from stdin." << std::endl;
 	std::cout << std::endl;
@@ -130,6 +131,11 @@ bool Options::versionRequested() const
 bool Options::guesserListRequested() const
 {
 	return m_listGuessers;
+}
+
+bool Options::mayResume() const
+{
+	return m_mayResume;
 }
 
 std::string Options::guesser() const
@@ -223,6 +229,8 @@ void Options::parse(const std::vector<std::string> &args)
 			m_version = true;
 		} else if (args[i] == "-l" || args[i] == "--list-guessers") {
 			m_listGuessers = true;
+		} else if (args[i] == "--no-resume") {
+			m_mayResume = false;
 		} else if (args[i] == "-g" && i < args.size()-1) {
 			m_guesser = args[++i];
 		} else if (!args[i].compare(0, 10, "--guesser=")) {
@@ -264,6 +272,7 @@ void Options::reset()
 	m_help = false;
 	m_version = false;
 	m_listGuessers = false;
+	m_mayResume = true;
 	m_guesser = std::string();
 	m_guesserOptions.clear();
 	m_numTesters = 1;
