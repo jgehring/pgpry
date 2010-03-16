@@ -66,12 +66,12 @@ void IncrementalGuesser::loadState(ConfReader *reader)
 
 	do {
 		if (reader->tag() == "length") {
-			m_length = reader->get<uint32_t>();
+			m_length = reader->getint();
 		} else if (reader->tag() == "indexes") {
 			m_indexes = new uint32_t[m_maxlength];
-			reader->get(m_indexes, m_maxlength);
+			reader->getints(m_indexes, m_maxlength);
 		} else if (reader->tag() == "has_next") {
-			m_hasNext = reader->get<bool>();
+			m_hasNext = reader->getbool();
 		} else if (!reader->tag().empty()) {
 			break;
 		}

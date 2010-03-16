@@ -194,7 +194,7 @@ void Options::load(ConfReader *reader)
 	m_commandLine.clear();
 	do {
 		if (reader->tag() == "arg") {
-			m_commandLine.push_back(reader->get<std::string>());
+			m_commandLine.push_back(reader->getstr());
 		} else if (!reader->tag().empty()) {
 			break;
 		}

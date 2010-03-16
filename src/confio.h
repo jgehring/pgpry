@@ -66,22 +66,16 @@ class ConfReader
 
 		bool next();
 		std::string tag() const;
-		template <typename T>
-		T get() const {
-			T tmp;
-			std::istringstream is(m_value, std::istringstream::in);
-			is >> tmp;
-			return tmp;
-		}
-		template <typename T>
-		uint32_t get(T *values, uint32_t max) {
-			std::vector<std::string> parts = Utils::split(m_value, ",");
-			for (uint32_t i = 0; i < parts.size() && i < max; i++) {
-				std::istringstream is(parts[i], std::istringstream::in);
-				is >> values[i];
-			}
-			return parts.size();
-		}
+
+		std::string getstr() const;
+		int32_t getint() const;
+		double getdouble() const;
+		bool getbool() const;
+
+		uint32_t getstrs(std::string *values, uint32_t max) const;
+		uint32_t getints(int32_t *values, uint32_t max) const;
+		uint32_t getints(uint32_t *values, uint32_t max) const;
+		uint32_t getdoubles(double *values, uint32_t max) const;
 
 	private:
 		std::istream &m_in;

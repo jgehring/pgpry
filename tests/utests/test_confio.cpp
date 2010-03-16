@@ -34,7 +34,9 @@ static void test_confio_read()
 		"# This is a comment\n" \
 		"number : 1\n" \
 		"double : 1.23\n" \
+		"boolean : 0\n" \
 		"string : bla\n" \
+		"string_ws : bla blubb\n" \
 		"number_vector : 1,2,3\n" \
 		"double_vector : 1.23,2.34,-3.3\n" \
 		"string_vector : bla,blubb,blobb,plipp\n";
@@ -43,20 +45,28 @@ static void test_confio_read()
 	ConfReader reader(stream);
 	while (reader.next()) {
 		if (reader.tag() == "number") {
-			if (reader.get<int>() != 1) {
-				throw Utils::strprintf("Invalid value for tag '%s' (expected %d, got %d)", reader.tag().c_str(), 1, reader.get<int>());
+			if (reader.getint() != 1) {
+				throw Utils::strprintf("Invalid value for tag '%s' (expected %d, got %d)", reader.tag().c_str(), 1, reader.getint());
 			}
 		} else if (reader.tag() == "double") {
-			if (reader.get<double>() != 1.23) {
-				throw Utils::strprintf("Invalid value for tag '%s' (expected %d, got %d)", reader.tag().c_str(), 1.22, reader.get<double>());
+			if (reader.getdouble() != 1.23) {
+				throw Utils::strprintf("Invalid value for tag '%s' (expected %d, got %d)", reader.tag().c_str(), 1.23, reader.getdouble());
+			}
+		} else if (reader.tag() == "boolean") {
+			if (reader.getbool() != false) {
+				throw Utils::strprintf("Invalid value for tag '%s' (expected %d, got %d)", reader.tag().c_str(), false, reader.getbool());
 			}
 		} else if (reader.tag() == "string") {
-			if (reader.get<std::string>() != "bla") {
-				throw Utils::strprintf("Invalid value for tag '%s' (expected '%s', got '%s')", reader.tag().c_str(), "bla", reader.get<std::string>().c_str());
+			if (reader.getstr() != "bla") {
+				throw Utils::strprintf("Invalid value for tag '%s' (expected '%s', got '%s')", reader.tag().c_str(), "bla", reader.getstr().c_str());
+			}
+		} else if (reader.tag() == "string_ws") {
+			if (reader.getstr() != "bla blubb") {
+				throw Utils::strprintf("Invalid value for tag '%s' (expected '%s', got '%s')", reader.tag().c_str(), "bla blubb", reader.getstr().c_str());
 			}
 		} else if (reader.tag() == "number_vector") {
 			int numbers[3];
-			int n = reader.get<int>(numbers, 3);
+			int n = reader.getints(numbers, 3);
 			if (n != 3) {
 				throw Utils::strprintf("Invalid value for tag '%s' (expected %d elements, got %d)", reader.tag().c_str(), 3, n);
 			}
@@ -68,7 +78,7 @@ static void test_confio_read()
 			}
 		} else if (reader.tag() == "double_vector") {
 			double doubles[3];
-			int n = reader.get<double>(doubles, 3);
+			int n = reader.getdoubles(doubles, 3);
 			if (n != 3) {
 				throw Utils::strprintf("Invalid value for tag '%s' (expected %d elements, got %d)", reader.tag().c_str(), 3, n);
 			}
@@ -80,7 +90,7 @@ static void test_confio_read()
 			}
 		} else if (reader.tag() == "string_vector") {
 			std::string strings[4];
-			int n = reader.get<std::string>(strings, 4);
+			int n = reader.getstrs(strings, 4);
 			if (n != 4) {
 				throw Utils::strprintf("Invalid value for tag '%s' (expected %d elements, got %d)", reader.tag().c_str(), 4, n);
 			}
@@ -102,7 +112,9 @@ static void test_confio_write()
 		"# This is a comment\n" \
 		"number : 1\n" \
 		"double : 1.23\n" \
+		"boolean : 1\n" \
 		"string : bla\n" \
+		"string_ws : bla blubb\n" \
 		"number_vector : 1,2,3\n" \
 		"double_vector : 1.23,2.34,-3.3\n" \
 		"string_vector : bla,blubb,blobb,plipp\n";
@@ -112,7 +124,9 @@ static void test_confio_write()
 	writer.putComment("This is a comment");
 	writer.put("number", 1);
 	writer.put("double", 1.23);
+	writer.put("boolean", true);
 	writer.put("string", "bla");
+	writer.put("string_ws", "bla blubb");
 	int numbers[] = {1, 2, 3};
 	writer.put("number_vector", numbers, 3);
 	double doubles[] = {1.23, 2.34, -3.3};

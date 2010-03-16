@@ -93,3 +93,83 @@ std::string ConfReader::tag() const
 {
 	return m_tag;
 }
+
+// Returns the current value as a string
+std::string ConfReader::getstr() const
+{
+	return m_value;
+}
+
+// Returns the current value as an integer
+int32_t ConfReader::getint() const
+{
+	int32_t t;
+	std::istringstream is(m_value, std::istringstream::in);
+	is >> t;
+	return t;
+}
+
+// Returns the current value as a double
+double ConfReader::getdouble() const
+{
+	double t;
+	std::istringstream is(m_value, std::istringstream::in);
+	is >> t;
+	return t;
+}
+
+// Returns the current value as a boolean
+bool ConfReader::getbool() const
+{
+	bool t;
+	std::istringstream is(m_value, std::istringstream::in);
+	is >> t;
+	return t;
+}
+
+// Stores the current value as a list of strings
+uint32_t ConfReader::getstrs(std::string *values, uint32_t max) const
+{
+	std::vector<std::string> parts = Utils::split(m_value, ",");
+	uint32_t i;
+	for (i = 0; i < parts.size() && i < max; i++) {
+		values[i] = parts[i];
+	}
+	return i;
+}
+
+// Stores the current value as a list of integers
+uint32_t ConfReader::getints(int32_t *values, uint32_t max) const
+{
+	std::vector<std::string> parts = Utils::split(m_value, ",");
+	uint32_t i;
+	for (i = 0; i < parts.size() && i < max; i++) {
+		std::istringstream is(parts[i], std::istringstream::in);
+		is >> values[i];
+	}
+	return i;
+}
+
+// Stores the current value as a list of integers
+uint32_t ConfReader::getints(uint32_t *values, uint32_t max) const
+{
+	std::vector<std::string> parts = Utils::split(m_value, ",");
+	uint32_t i;
+	for (i = 0; i < parts.size() && i < max; i++) {
+		std::istringstream is(parts[i], std::istringstream::in);
+		is >> values[i];
+	}
+	return i;
+}
+
+// Stores the current value as a list of doubles
+uint32_t ConfReader::getdoubles(double *values, uint32_t max) const
+{
+	std::vector<std::string> parts = Utils::split(m_value, ",");
+	uint32_t i;
+	for (i = 0; i < parts.size() && i < max; i++) {
+		std::istringstream is(parts[i], std::istringstream::in);
+		is >> values[i];
+	}
+	return i;
+}
