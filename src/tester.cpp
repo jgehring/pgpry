@@ -230,7 +230,7 @@ bool Tester::check(const Memblock &mblock)
 	if (checksumOk) {
 		BIGNUM *b = NULL;
 		uint32_t blen = (num_bits + 7) / 8;
-		if (blen < m_datalen && BN_bin2bn(m_out + 2, blen, b) != NULL) {
+		if (blen < m_datalen && ((b = BN_bin2bn(m_out + 2, blen, NULL)) != NULL)) {
 			BN_free(b);
 			return true;
 		}
