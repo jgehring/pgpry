@@ -17,40 +17,29 @@
  */
 
 /*
- * file: prefixsuffixfilter.h
- * Buffer filtering using prefixes and suffixes
+ * file: filter.h
+ * Abstract filter base class
  */
 
 
-#ifndef PREFIXSUFFIXFILTER_H_
-#define PREFIXSUFFIXFILTER_H_
+#ifndef FILTER_H_
+#define FILTER_H_
 
-
-#include <vector>
-#include <string>
 
 #include "sysutils.h"
 
 class Buffer;
 
 
-class PrefixSuffixFilter : public SysUtils::Thread
+class Filter : public SysUtils::Thread
 {
 	public:
-		PrefixSuffixFilter(Buffer *in, Buffer *out);
-
-		void setPrefixes(const std::vector<std::string> &prefixes);
-		void setSuffixes(const std::vector<std::string> &suffixes);
+		Filter(Buffer *in, Buffer *out);
 
 	protected:
-		void run();
-
-	private:
 		Buffer *m_in;
 		Buffer *m_out;
-		std::vector<std::string> m_prefixes;
-		std::vector<std::string> m_suffixes;
 };
 
 
-#endif // PREFIXSUFFIXFILTER_H_
+#endif // FILTER_H_

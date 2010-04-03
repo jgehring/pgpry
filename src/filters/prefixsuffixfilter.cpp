@@ -32,7 +32,7 @@
 
 // Constructor
 PrefixSuffixFilter::PrefixSuffixFilter(Buffer *in, Buffer *out)
-	: Thread(), m_in(in), m_out(out)
+	: Filter(in, out)
 {
 
 }

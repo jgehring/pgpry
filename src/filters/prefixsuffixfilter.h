@@ -17,39 +17,36 @@
  */
 
 /*
- * file: regexfilter.h
- * Buffer filtering with regular expressions
+ * file: prefixsuffixfilter.h
+ * Buffer filtering using prefixes and suffixes
  */
 
 
-#ifndef REGEXFILTER_H_
-#define REGEXFILTER_H_
+#ifndef PREFIXSUFFIXFILTER_H_
+#define PREFIXSUFFIXFILTER_H_
 
 
 #include <vector>
+#include <string>
 
-#include "sysutils.h"
-#include "threads.h"
-
-class Buffer;
+#include "filter.h"
 
 
-class RegexFilter : public SysUtils::Thread
+class PrefixSuffixFilter : public Filter
 {
 	public:
-		RegexFilter(Buffer *in, Buffer *out);
+		PrefixSuffixFilter(Buffer *in, Buffer *out);
 
-		bool readExpressions(const std::string &file);
+		void setPrefixes(const std::vector<std::string> &prefixes);
+		void setSuffixes(const std::vector<std::string> &suffixes);
 
 	protected:
 		void run();
 
 	private:
-		Buffer *m_in;
-		Buffer *m_out;
-		std::vector<SysUtils::Regex> m_posrx;
-		std::vector<SysUtils::Regex> m_negrx;
+		std::vector<std::string> m_prefixes;
+		std::vector<std::string> m_suffixes;
 };
 
 
-#endif
+#endif // PREFIXSUFFIXFILTER_H_

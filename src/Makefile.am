@@ -16,8 +16,6 @@ pgpry_SOURCES = \
 	options.h options.cpp \
 	packetheader.h packetheader.cpp \
 	pistream.h pistream.cpp \
-	prefixsuffixfilter.h prefixsuffixfilter.cpp \
-	regexfilter.h regexfilter.cpp \
 	string2key.h string2key.cpp \
 	tester.h tester.cpp \
 	utils.h utils.cpp \
@@ -28,11 +26,16 @@ pgpry_SOURCES = \
 	guessers/randomguesser.h guessers/randomguesser.cpp \
 	guessers/dictguesser.h guessers/dictguesser.cpp \
 	\
+	filters/filter.h filters/filter.cpp \
+	filters/prefixsuffixfilter.h filters/prefixsuffixfilter.cpp \
+	filters/regexfilter.h filters/regexfilter.cpp \
+	\
 	sysutils/sysutils.h sysutils/sysutils.cpp \
 	sysutils/threads.h sysutils/threads.cpp
 
 INCLUDES = \
 	-I@top_srcdir@/src/guessers \
+	-I@top_srcdir@/src/filters \
 	-I@top_srcdir@/src/sysutils \
 	$(OPENSSL_INCLUDES)
 
