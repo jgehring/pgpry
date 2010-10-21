@@ -36,9 +36,6 @@
 namespace Utils
 {
 
-uint32_t toBigEndian(uint32_t i);
-uint32_t fromBigEndian(uint32_t i);
-
 bool str2int(const std::string &str, int32_t *i);
 bool str2int(const std::string &str, uint32_t *i);
 std::string int2str(int32_t i);

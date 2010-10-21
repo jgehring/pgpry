@@ -30,25 +30,11 @@
 #include <limits>
 #include <sstream>
 
-#include <arpa/inet.h>
-
 #include "utils.h"
 
 
 namespace Utils
 {
-
-// Converts a number to big endian format
-uint32_t toBigEndian(uint32_t i)
-{
-	return htons(i);
-}
-
-// Converts a number from big endian format (to the host format)
-uint32_t fromBigEndian(uint32_t i)
-{
-	return ntohs(i);
-}
 
 // Wrapper for strtol()
 template<typename T>
