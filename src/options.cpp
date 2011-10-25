@@ -80,7 +80,7 @@ void Options::printHelp() const
 void Options::printVersion() const
 {
 	std::cout << PACKAGE_NAME << " " << PACKAGE_VERSION << std::endl;
-	std::cout << "Copyright (C) 2010 " << "Jonas Gehring <" << PACKAGE_BUGREPORT << ">" << std::endl;
+	std::cout << "Copyright (C) 2010-2011 " << "Jonas Gehring <" << PACKAGE_BUGREPORT << ">" << std::endl;
 	std::cout << "Released under the GNU General Public License." << std::endl;
 }
 

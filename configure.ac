@@ -6,7 +6,7 @@
 #
 
 AC_PREREQ([2.6])
-AC_INIT(pgpry, 0.1, jonas.gehring@boolsoft.org)
+AC_INIT(pgpry, 0.1.1, jonas.gehring@boolsoft.org)
 AM_INIT_AUTOMAKE()
 AC_CONFIG_HEADER([config.h])
 AC_CONFIG_TESTDIR([tests])
