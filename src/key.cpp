@@ -27,6 +27,7 @@
 
 #include <openssl/aes.h>
 #include <openssl/blowfish.h>
+#include <openssl/bn.h>
 #include <openssl/cast.h>
 #include <openssl/idea.h>
 
@@ -242,4 +243,51 @@ void Key::decrypt(const uint8_t *in, uint8_t *out, uint32_t length,
 		default:
 			break;
 	}
+}
+
+/*
+ * Verify the secret key for the public key.
+ */
+bool Key::verify(const uint8_t *buf, uint32_t len) const
+{
+	switch (m_algorithm) {
+	case CryptUtils::PKA_RSA_ENCSIGN:
+	{
+		class ScopeCtx {
+		public:
+			ScopeCtx() {
+				m_ctx = BN_CTX_new();
+				BN_CTX_start(m_ctx);
+			}
+			~ScopeCtx() {
+				BN_CTX_end(m_ctx);
+				BN_CTX_free(m_ctx);
+			}
+			BN_CTX *ctx() const { return m_ctx; }
+			BIGNUM *get() const { return BN_CTX_get(m_ctx); }
+		private:
+			BN_CTX *m_ctx;
+		} ctx;
+		BIGNUM *bs[4];
+		uint32_t ofs = 0;
+
+		for (uint32_t i = 0; i != sizeof(bs) / sizeof(bs[0]); ++i) {
+			uint32_t blen = ((buf[ofs] << 8) + buf[1 + ofs] + 7) / 8;
+			ofs += 2;
+			if (len < ofs + blen || ((bs[i] = BN_bin2bn(&buf[ofs], blen, ctx.get())) == NULL)) {
+				return false;
+			}
+			ofs += blen;
+		}
+
+		// verify n = p * q
+		BN_mul(bs[1], bs[1], bs[2], ctx.ctx());
+		return 0 == BN_cmp(bs[1], m_rsa->n);
+	}
+	case CryptUtils::PKA_DSA:
+		return ((buf[0] << 8) + buf[1] + 7) / 8 <= len - 2;
+	default:
+		break;
+	}
+	return true;
 }

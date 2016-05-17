@@ -208,11 +208,6 @@ bool Tester::check(const Memblock &mblock)
 		} break;
 	}
 
-	// If the checksum is ok, check the length of the first MPI of the private key
-	if (checksumOk) {
-		uint32_t blen = (num_bits + 7) / 8;
-		return blen < m_datalen;
-	}
-
-	return false;
+	// If the checksum is ok, verify the secret key equations.
+	return checksumOk && m_key.verify(m_out, m_datalen - 2);
 }
