@@ -102,6 +102,7 @@ void Tester::init()
 
 	// Check if given cipher is supported
 	switch (m_cipher) {
+		case CryptUtils::CIPHER_IDEA:
 		case CryptUtils::CIPHER_CAST5:
 		case CryptUtils::CIPHER_BLOWFISH:
 		case CryptUtils::CIPHER_AES128:

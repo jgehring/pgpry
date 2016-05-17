@@ -25,6 +25,7 @@
 #include <openssl/aes.h>
 #include <openssl/blowfish.h>
 #include <openssl/cast.h>
+#include <openssl/idea.h>
 
 #include "cryptutils.h"
 
@@ -36,6 +37,8 @@ namespace CryptUtils
 uint32_t blockSize(CipherAlgorithm algorithm)
 {
 	switch (algorithm) {
+		case CIPHER_IDEA:
+			return IDEA_BLOCK;
 		case CIPHER_CAST5:
 			return CAST_BLOCK;
 		case CIPHER_BLOWFISH:
@@ -55,6 +58,8 @@ uint32_t blockSize(CipherAlgorithm algorithm)
 uint32_t keySize(CipherAlgorithm algorithm)
 {
 	switch (algorithm) {
+		case CIPHER_IDEA:
+			return IDEA_KEY_LENGTH;
 		case CIPHER_CAST5:
 			return CAST_KEY_LENGTH;
 		case CIPHER_BLOWFISH:
