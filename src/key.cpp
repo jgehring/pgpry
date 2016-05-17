@@ -103,11 +103,11 @@ PIStream &Key::operator<<(PIStream &in)
 
 	// Read public key
 	in >> m_version;
-	if (m_version != 3 && m_version != 4) {
+	if (m_version < 2 || 4 < m_version) {
 		throw Utils::strprintf("Unspported key version %d", m_version);
 	}
 	in >> m_time;
-	if (m_version == 3) {
+	if (m_version < 4) {
 		in >> m_expire;
 	}
 	uint8_t tmp;
