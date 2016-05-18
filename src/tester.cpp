@@ -24,10 +24,7 @@
 
 #include <iostream>
 
-#include <openssl/aes.h>
-#include <openssl/blowfish.h>
 #include <openssl/bn.h>
-#include <openssl/cast.h>
 
 #include "attack.h"
 #include "buffer.h"
@@ -137,31 +134,7 @@ bool Tester::check(const Memblock &mblock)
 	// password is correct, too.
 #if 1
 	memcpy(m_ivec, s2k.ivec(), m_blockSize);
-	switch (m_cipher) {
-		case CryptUtils::CIPHER_CAST5: {
-			CAST_KEY ck;
-			CAST_set_key(&ck, m_keySize, m_keydata);
-			CAST_cfb64_encrypt(m_in, m_out, CAST_BLOCK, &ck, m_ivec, &tmp, CAST_DECRYPT);
-		}
-		break;
-		case CryptUtils::CIPHER_BLOWFISH: {
-			BF_KEY ck;
-			BF_set_key(&ck, m_keySize, m_keydata);
-			BF_cfb64_encrypt(m_in, m_out, BF_BLOCK, &ck, m_ivec, &tmp, BF_DECRYPT);
-		}
-		break;
-		case CryptUtils::CIPHER_AES128:
-		case CryptUtils::CIPHER_AES192:
-		case CryptUtils::CIPHER_AES256: {
-			AES_KEY ck;
-			AES_set_encrypt_key(m_keydata, m_keySize * 8, &ck);
-			AES_cfb128_encrypt(m_in, m_out, AES_BLOCK_SIZE, &ck, m_ivec, &tmp, AES_DECRYPT);
-		}
-		break;
-
-		default:
-			break;
-	}
+	m_key.decrypt(m_in, m_out, m_blockSize, m_keydata, m_keySize, m_ivec, &tmp);
 
 	uint32_t num_bits = ((m_out[0] << 8) | m_out[1]);
 	if (num_bits < MIN_BN_BITS || num_bits > m_bits) {
@@ -172,31 +145,7 @@ bool Tester::check(const Memblock &mblock)
 	// Decrypt all data
 	memcpy(m_ivec, s2k.ivec(), m_blockSize);
 	tmp = 0;
-	switch (m_cipher) {
-		case CryptUtils::CIPHER_CAST5: {
-			CAST_KEY ck;
-			CAST_set_key(&ck, m_keySize, m_keydata);
-			CAST_cfb64_encrypt(m_in, m_out, m_datalen, &ck, m_ivec, &tmp, CAST_DECRYPT);
-		}
-		break;
-		case CryptUtils::CIPHER_BLOWFISH: {
-			BF_KEY ck;
-			BF_set_key(&ck, m_keySize, m_keydata);
-			BF_cfb64_encrypt(m_in, m_out, m_datalen, &ck, m_ivec, &tmp, BF_DECRYPT);
-		}
-		break;
-		case CryptUtils::CIPHER_AES128:
-		case CryptUtils::CIPHER_AES192:
-		case CryptUtils::CIPHER_AES256: {
-			AES_KEY ck;
-			AES_set_encrypt_key(m_keydata, m_keySize * 8, &ck);
-			AES_cfb128_encrypt(m_in, m_out, m_datalen, &ck, m_ivec, &tmp, AES_DECRYPT);
-		}
-		break;
-
-		default:
-			break;
-	}
+	m_key.decrypt(m_in, m_out, m_datalen, m_keydata, m_keySize, m_ivec, &tmp);
 
 	// Verify
 	bool checksumOk = false;

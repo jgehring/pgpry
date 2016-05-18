@@ -56,6 +56,10 @@ class Key
 
 		Key &operator=(const Key &other);
 
+		void decrypt(const uint8_t *in, uint8_t *out, uint32_t length,
+			     const uint8_t *keydata, uint32_t keySize,
+			     uint8_t *ivec, int32_t *n) const;
+
 	private:
 		bool m_locked;
 		uint8_t m_version;

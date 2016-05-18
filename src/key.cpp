@@ -25,6 +25,10 @@
 #include <iostream>
 #include <cstring>
 
+#include <openssl/aes.h>
+#include <openssl/blowfish.h>
+#include <openssl/cast.h>
+
 #include "packetheader.h"
 #include "pistream.h"
 #include "utils.h"
@@ -197,4 +201,38 @@ Key &Key::operator=(const Key &other)
 	m_expire = other.m_expire;
 
 	return *this;
+}
+
+/*
+ * Decrypt (part of) a buffer.
+ */
+void Key::decrypt(const uint8_t *in, uint8_t *out, uint32_t length,
+		  const uint8_t *keydata, uint32_t keySize,
+		  uint8_t *ivec, int32_t *n) const
+{
+	switch (m_s2k.cipherAlgorithm()) {
+		case CryptUtils::CIPHER_CAST5: {
+			CAST_KEY ck;
+			CAST_set_key(&ck, keySize, keydata);
+			CAST_cfb64_encrypt(in, out, length, &ck, ivec, n, CAST_DECRYPT);
+		}
+		break;
+		case CryptUtils::CIPHER_BLOWFISH: {
+			BF_KEY ck;
+			BF_set_key(&ck, keySize, keydata);
+			BF_cfb64_encrypt(in, out, length, &ck, ivec, n, BF_DECRYPT);
+		}
+		break;
+		case CryptUtils::CIPHER_AES128:
+		case CryptUtils::CIPHER_AES192:
+		case CryptUtils::CIPHER_AES256: {
+			AES_KEY ck;
+			AES_set_encrypt_key(keydata, keySize * 8, &ck);
+			AES_cfb128_encrypt(in, out, length, &ck, ivec, n, AES_DECRYPT);
+		}
+		break;
+
+		default:
+			break;
+	}
 }
