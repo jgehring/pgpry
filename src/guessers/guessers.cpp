@@ -94,9 +94,9 @@ void Guesser::run()
     SysUtils::Watch watch;
 	int32_t n = 0, numBlocks = 0;
 
-	Memblock blocks[8];
+	Memblock blocks[CHUNK_SIZE];
 	while (!abortFlag()) {
-		for (numBlocks = 0; numBlocks < 8; numBlocks++) {
+		for (numBlocks = 0; numBlocks < CHUNK_SIZE; numBlocks++) {
 			if (!guess(&blocks[numBlocks])) {
 				break;
 			}
@@ -118,7 +118,7 @@ void Guesser::run()
 			n = 0;
 		}
 
-		if (numBlocks != 8) {
+		if (numBlocks != CHUNK_SIZE) {
 			Attack::exhausted();
 			break;
 		}
