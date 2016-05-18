@@ -32,8 +32,12 @@
 
 class Buffer
 {
+		// intentionally unimplemented
+		Buffer(Buffer const&);
+		Buffer& operator =(Buffer const&);
+
 	public:
-		Buffer(uint32_t size = 8192);
+		explicit Buffer(uint32_t size = 8192);
 		~Buffer();
 
 		uint32_t size();
@@ -49,7 +53,8 @@ class Buffer
 		uint32_t m_size;
 		Memblock *m_start, *m_end;
 
-		SysUtils::Mutex m_mutex;
+		SysUtils::Mutex m_mxStart;
+		SysUtils::Mutex m_mxEnd;
 		SysUtils::Semaphore m_used;
 		SysUtils::Semaphore m_free;
 };
@@ -58,11 +63,7 @@ class Buffer
 // Inlined functions
 inline uint32_t Buffer::size()
 {
-	uint32_t t;
-	m_mutex.lock();
-	t = m_used.available();
-	m_mutex.unlock();
-	return t;
+	return m_used.available();
 }
 
 inline uint32_t Buffer::capacity()
@@ -73,21 +74,21 @@ inline uint32_t Buffer::capacity()
 inline void Buffer::put(const Memblock &m)
 {
 	m_free.acquire(1);
-	m_mutex.lock();
+	m_mxEnd.lock();
 
 	*m_end = m;
 	if (++m_end >= m_data + m_size) {
 		m_end = m_data;
 	}
 
-	m_mutex.unlock();
+	m_mxEnd.unlock();
 	m_used.release(1);
 }
 
 inline uint32_t Buffer::putn(uint32_t n, const Memblock *m)
 {
 	m_free.acquire(n);
-	m_mutex.lock();
+	m_mxEnd.lock();
 
 	for (uint32_t i = 0; i < n; i++) {
 		*m_end = m[i];
@@ -96,7 +97,7 @@ inline uint32_t Buffer::putn(uint32_t n, const Memblock *m)
 		}
 	}
 
-	m_mutex.unlock();
+	m_mxEnd.unlock();
 	m_used.release(n);
 	return n;
 }
@@ -104,21 +105,21 @@ inline uint32_t Buffer::putn(uint32_t n, const Memblock *m)
 inline void Buffer::take(Memblock *m)
 {
 	m_used.acquire(1);
-	m_mutex.lock();
+	m_mxStart.lock();
 
 	*m = *m_start;
 	if (++m_start >= m_data + m_size) {
 		m_start = m_data;
 	}
 
-	m_mutex.unlock();
+	m_mxStart.unlock();
 	m_free.release(1);
 }
 
 inline uint32_t Buffer::taken(uint32_t n, Memblock *m)
 {
 	n = m_used.maxAcquire(n);
-	m_mutex.lock();
+	m_mxStart.lock();
 
 	for (uint32_t i = 0; i < n; i++) {
 		m[i] = *m_start;
@@ -127,7 +128,7 @@ inline uint32_t Buffer::taken(uint32_t n, Memblock *m)
 		}
 	}
 
-	m_mutex.unlock();
+	m_mxStart.unlock();
 	m_free.release(n);
 	return n;
 }
