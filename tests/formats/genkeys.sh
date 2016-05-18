@@ -11,5 +11,5 @@ javac -extdirs . genkeys.java && java -cp .:${BCPROV}:${BCPG} genkeys
 
 # Archive keys
 if [ -d "keys" ]; then
-	tar -cjf keys.tar.bz2 keys
+	tar -cjf keys.tar.bz2 keys -C contrib keys
 fi
