@@ -24,8 +24,6 @@
 
 #include <iostream>
 
-#include <openssl/bn.h>
-
 #include "attack.h"
 #include "buffer.h"
 #include "utils.h"
@@ -138,7 +136,9 @@ bool Tester::check(const Memblock &mblock)
 	m_key.decrypt(m_in, m_out, m_blockSize, m_keydata, m_keySize, m_ivec, &tmp);
 
 	uint32_t num_bits = ((m_out[0] << 8) | m_out[1]);
-	if (num_bits < MIN_BN_BITS || num_bits > m_bits) {
+	if (num_bits < MIN_BN_BITS || num_bits > m_bits ||
+	    (num_bits % 8 != BN_num_bits_word(m_out[2]) % 8))
+	{
 		return false;
 	}
 #endif
@@ -177,14 +177,10 @@ bool Tester::check(const Memblock &mblock)
 			break;
 	}
 
-	// If the checksum is ok, try to parse the first MPI of the private key
+	// If the checksum is ok, check the length of the first MPI of the private key
 	if (checksumOk) {
-		BIGNUM *b = NULL;
 		uint32_t blen = (num_bits + 7) / 8;
-		if (blen < m_datalen && ((b = BN_bin2bn(m_out + 2, blen, NULL)) != NULL)) {
-			BN_free(b);
-			return true;
-		}
+		return blen < m_datalen;
 	}
 
 	return false;
