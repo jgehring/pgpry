@@ -68,8 +68,8 @@ void PrefixSuffixFilter::run()
 		while (!abortFlag()) {
 			m_in->take(&m);
 			for (uint32_t i = 0; i < m_prefixes.size(); i++) {
-				buffer = m;
-				buffer += prefixBlocks[i];
+				buffer = prefixBlocks[i];
+				buffer += m;
 				m_out->put(buffer);
 			}
 		}
@@ -86,8 +86,8 @@ void PrefixSuffixFilter::run()
 		while (!abortFlag()) {
 			m_in->take(&m);
 			for (uint32_t i = 0; i < m_prefixes.size(); i++) {
-				buffer = m;
-				buffer += prefixBlocks[i];
+				buffer = prefixBlocks[i];
+				buffer += m;
 				for (uint32_t j = 0; j < m_suffixes.size(); j++) {
 					buffer2 = buffer;
 					buffer2 += suffixBlocks[j];
