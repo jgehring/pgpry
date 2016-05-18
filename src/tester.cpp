@@ -133,7 +133,13 @@ bool Tester::check(const Memblock &mblock)
 	// password is correct, too.
 #if 1
 	memcpy(m_ivec, s2k.ivec(), m_blockSize);
-	m_key.decrypt(m_in, m_out, m_blockSize, m_keydata, m_keySize, m_ivec, &tmp);
+	if (m_key.version() < 4) {
+		// Prior to V4, MPI lengths are unencrypted.
+		memcpy(m_out, m_in, 2);
+		m_key.decrypt(&m_in[2], &m_out[2], m_blockSize, m_keydata, m_keySize, m_ivec, &tmp);
+	} else {
+		m_key.decrypt(m_in, m_out, m_blockSize, m_keydata, m_keySize, m_ivec, &tmp);
+	}
 
 	uint32_t num_bits = ((m_out[0] << 8) | m_out[1]);
 	if (num_bits < MIN_BN_BITS || num_bits > m_bits ||
@@ -145,8 +151,37 @@ bool Tester::check(const Memblock &mblock)
 
 	// Decrypt all data
 	memcpy(m_ivec, s2k.ivec(), m_blockSize);
-	tmp = 0;
-	m_key.decrypt(m_in, m_out, m_datalen, m_keydata, m_keySize, m_ivec, &tmp);
+	if (m_key.version() < 4) {
+		// V3 keys are RSA only according to [5.5.3].
+		if (m_cipher != CryptUtils::PKA_RSA_ENCSIGN) {
+			throw Utils::strprintf("Unexpected V3 cipher: %d", m_cipher);
+		}
+
+		// Prior to V4, the four RSA MPIs were encrypted separately.
+		uint32_t ofs = 0;
+		for (uint32_t i = 0; i != 4; ++i) {
+			memcpy(&m_out[ofs], &m_in[ofs], 2);
+			uint32_t len = (((m_out[ofs] << 8) | m_out[1 + ofs]) + 7) / 8;
+			ofs += 2;
+
+			if (m_datalen < ofs + len) {
+				throw "Insufficient data length";
+			}
+			tmp = 0;
+			m_key.decrypt(&m_in[ofs], &m_out[ofs], len, m_keydata, m_keySize, m_ivec, &tmp);
+			ofs += len;
+		}
+
+		// Copy checksum.
+		memcpy(&m_out[ofs], &m_in[ofs], 2);
+		ofs += 2;
+		if (ofs != m_datalen) {
+			throw "Data length mismatch";
+		}
+	} else {
+		tmp = 0;
+		m_key.decrypt(m_in, m_out, m_datalen, m_keydata, m_keySize, m_ivec, &tmp);
+	}
 
 	// Verify
 	bool checksumOk = false;
@@ -162,8 +197,7 @@ bool Tester::check(const Memblock &mblock)
 			}
 		} break;
 
-		case 0:
-		case 255: {
+		default: {
 			uint16_t sum = 0;
 			for (uint32_t i = 0; i < m_datalen - 2; i++) {
 				sum += m_out[i];
@@ -172,9 +206,6 @@ bool Tester::check(const Memblock &mblock)
 				checksumOk = true;
 			}
 		} break;
-
-		default:
-			break;
 	}
 
 	// If the checksum is ok, check the length of the first MPI of the private key

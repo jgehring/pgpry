@@ -47,6 +47,7 @@ class Key
 
 		bool locked() const;
 		uint32_t dataLength() const;
+		uint8_t version() const;
 		uint32_t bits() const;
 		const uint8_t *data() const;
 		const String2Key &string2Key() const;
@@ -77,6 +78,11 @@ class Key
 };
 
 // Inlined functions
+inline uint8_t Key::version() const
+{
+	return m_version;
+}
+
 inline uint32_t Key::bits() const
 {
 	if (m_rsa) {
