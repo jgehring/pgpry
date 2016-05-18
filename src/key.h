@@ -48,6 +48,7 @@ class Key
 		bool locked() const;
 		uint32_t dataLength() const;
 		uint8_t version() const;
+		CryptUtils::PublicKeyAlgorithm algorithm() const;
 		uint32_t bits() const;
 		const uint8_t *data() const;
 		const String2Key &string2Key() const;
@@ -82,6 +83,11 @@ class Key
 inline uint8_t Key::version() const
 {
 	return m_version;
+}
+
+inline CryptUtils::PublicKeyAlgorithm Key::algorithm() const
+{
+	return m_algorithm;
 }
 
 inline uint32_t Key::bits() const

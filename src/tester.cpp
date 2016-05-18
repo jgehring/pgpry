@@ -153,7 +153,7 @@ bool Tester::check(const Memblock &mblock)
 	memcpy(m_ivec, s2k.ivec(), m_blockSize);
 	if (m_key.version() < 4) {
 		// V3 keys are RSA only according to [5.5.3].
-		if (m_cipher != CryptUtils::PKA_RSA_ENCSIGN) {
+		if (CryptUtils::PKA_RSA_ENCSIGN != m_key.algorithm()) {
 			throw Utils::strprintf("Unexpected V3 cipher: %d", m_cipher);
 		}
 
