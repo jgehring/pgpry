@@ -154,7 +154,8 @@ bool Tester::check(const Memblock &mblock)
 	if (m_key.version() < 4) {
 		// V3 keys are RSA only according to [5.5.3].
 		if (CryptUtils::PKA_RSA_ENCSIGN != m_key.algorithm()) {
-			throw Utils::strprintf("Unexpected V3 cipher: %d", m_cipher);
+			throw Utils::strprintf("Unexpected V3 algorithm: %d",
+				m_key.algorithm());
 		}
 
 		// Prior to V4, the four RSA MPIs were encrypted separately.
