@@ -24,11 +24,6 @@
 
 #include <iostream>
 
-#include <openssl/aes.h>
-#include <openssl/blowfish.h>
-#include <openssl/bn.h>
-#include <openssl/cast.h>
-
 #include "attack.h"
 #include "buffer.h"
 #include "utils.h"
@@ -105,6 +100,7 @@ void Tester::init()
 
 	// Check if given cipher is supported
 	switch (m_cipher) {
+		case CryptUtils::CIPHER_IDEA:
 		case CryptUtils::CIPHER_CAST5:
 		case CryptUtils::CIPHER_BLOWFISH:
 		case CryptUtils::CIPHER_AES128:
@@ -137,65 +133,55 @@ bool Tester::check(const Memblock &mblock)
 	// password is correct, too.
 #if 1
 	memcpy(m_ivec, s2k.ivec(), m_blockSize);
-	switch (m_cipher) {
-		case CryptUtils::CIPHER_CAST5: {
-			CAST_KEY ck;
-			CAST_set_key(&ck, m_keySize, m_keydata);
-			CAST_cfb64_encrypt(m_in, m_out, CAST_BLOCK, &ck, m_ivec, &tmp, CAST_DECRYPT);
-		}
-		break;
-		case CryptUtils::CIPHER_BLOWFISH: {
-			BF_KEY ck;
-			BF_set_key(&ck, m_keySize, m_keydata);
-			BF_cfb64_encrypt(m_in, m_out, BF_BLOCK, &ck, m_ivec, &tmp, BF_DECRYPT);
-		}
-		break;
-		case CryptUtils::CIPHER_AES128:
-		case CryptUtils::CIPHER_AES192:
-		case CryptUtils::CIPHER_AES256: {
-			AES_KEY ck;
-			AES_set_encrypt_key(m_keydata, m_keySize * 8, &ck);
-			AES_cfb128_encrypt(m_in, m_out, AES_BLOCK_SIZE, &ck, m_ivec, &tmp, AES_DECRYPT);
-		}
-		break;
-
-		default:
-			break;
+	if (m_key.version() < 4) {
+		// Prior to V4, MPI lengths are unencrypted.
+		memcpy(m_out, m_in, 2);
+		m_key.decrypt(&m_in[2], &m_out[2], m_blockSize, m_keydata, m_keySize, m_ivec, &tmp);
+	} else {
+		m_key.decrypt(m_in, m_out, m_blockSize, m_keydata, m_keySize, m_ivec, &tmp);
 	}
 
 	uint32_t num_bits = ((m_out[0] << 8) | m_out[1]);
-	if (num_bits < MIN_BN_BITS || num_bits > m_bits) {
+	if (num_bits < MIN_BN_BITS || num_bits > m_bits ||
+	    (num_bits % 8 != BN_num_bits_word(m_out[2]) % 8))
+	{
 		return false;
 	}
 #endif
 
 	// Decrypt all data
 	memcpy(m_ivec, s2k.ivec(), m_blockSize);
-	tmp = 0;
-	switch (m_cipher) {
-		case CryptUtils::CIPHER_CAST5: {
-			CAST_KEY ck;
-			CAST_set_key(&ck, m_keySize, m_keydata);
-			CAST_cfb64_encrypt(m_in, m_out, m_datalen, &ck, m_ivec, &tmp, CAST_DECRYPT);
+	if (m_key.version() < 4) {
+		// V3 keys are RSA only according to [5.5.3].
+		if (CryptUtils::PKA_RSA_ENCSIGN != m_key.algorithm()) {
+			throw Utils::strprintf("Unexpected V3 algorithm: %d",
+				m_key.algorithm());
 		}
-		break;
-		case CryptUtils::CIPHER_BLOWFISH: {
-			BF_KEY ck;
-			BF_set_key(&ck, m_keySize, m_keydata);
-			BF_cfb64_encrypt(m_in, m_out, m_datalen, &ck, m_ivec, &tmp, BF_DECRYPT);
-		}
-		break;
-		case CryptUtils::CIPHER_AES128:
-		case CryptUtils::CIPHER_AES192:
-		case CryptUtils::CIPHER_AES256: {
-			AES_KEY ck;
-			AES_set_encrypt_key(m_keydata, m_keySize * 8, &ck);
-			AES_cfb128_encrypt(m_in, m_out, m_datalen, &ck, m_ivec, &tmp, AES_DECRYPT);
-		}
-		break;
 
-		default:
-			break;
+		// Prior to V4, the four RSA MPIs were encrypted separately.
+		uint32_t ofs = 0;
+		for (uint32_t i = 0; i != 4; ++i) {
+			memcpy(&m_out[ofs], &m_in[ofs], 2);
+			uint32_t len = (((m_out[ofs] << 8) | m_out[1 + ofs]) + 7) / 8;
+			ofs += 2;
+
+			if (m_datalen < ofs + len) {
+				throw "Insufficient data length";
+			}
+			tmp = 0;
+			m_key.decrypt(&m_in[ofs], &m_out[ofs], len, m_keydata, m_keySize, m_ivec, &tmp);
+			ofs += len;
+		}
+
+		// Copy checksum.
+		memcpy(&m_out[ofs], &m_in[ofs], 2);
+		ofs += 2;
+		if (ofs != m_datalen) {
+			throw "Data length mismatch";
+		}
+	} else {
+		tmp = 0;
+		m_key.decrypt(m_in, m_out, m_datalen, m_keydata, m_keySize, m_ivec, &tmp);
 	}
 
 	// Verify
@@ -212,8 +198,7 @@ bool Tester::check(const Memblock &mblock)
 			}
 		} break;
 
-		case 0:
-		case 255: {
+		default: {
 			uint16_t sum = 0;
 			for (uint32_t i = 0; i < m_datalen - 2; i++) {
 				sum += m_out[i];
@@ -222,20 +207,8 @@ bool Tester::check(const Memblock &mblock)
 				checksumOk = true;
 			}
 		} break;
-
-		default:
-			break;
 	}
 
-	// If the checksum is ok, try to parse the first MPI of the private key
-	if (checksumOk) {
-		BIGNUM *b = NULL;
-		uint32_t blen = (num_bits + 7) / 8;
-		if (blen < m_datalen && ((b = BN_bin2bn(m_out + 2, blen, NULL)) != NULL)) {
-			BN_free(b);
-			return true;
-		}
-	}
-
-	return false;
+	// If the checksum is ok, verify the secret key equations.
+	return checksumOk && m_key.verify(m_out, m_datalen - 2);
 }

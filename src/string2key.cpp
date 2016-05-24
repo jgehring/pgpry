@@ -359,9 +359,10 @@ PIStream &String2Key::operator<<(PIStream &in)
 				throw "Unknown String2Key spec";
 		}
 	} else if (m_usage != 0) {
-		uint8_t tmp;
-		in >> tmp; m_cipherAlgorithm = (CryptUtils::CipherAlgorithm)tmp;
+		// Legacy case detailed in [3.7.2.1]
+		m_cipherAlgorithm = (CryptUtils::CipherAlgorithm)m_usage;
 		m_spec = SPEC_SIMPLE;
+		m_hashAlgorithm = CryptUtils::HASH_MD5;
 	}
 
 	// Read cipher initialization vector

@@ -47,6 +47,8 @@ class Key
 
 		bool locked() const;
 		uint32_t dataLength() const;
+		uint8_t version() const;
+		CryptUtils::PublicKeyAlgorithm algorithm() const;
 		uint32_t bits() const;
 		const uint8_t *data() const;
 		const String2Key &string2Key() const;
@@ -55,6 +57,11 @@ class Key
 		POStream &operator>>(POStream &out);
 
 		Key &operator=(const Key &other);
+
+		void decrypt(const uint8_t *in, uint8_t *out, uint32_t length,
+			     const uint8_t *keydata, uint32_t keySize,
+			     uint8_t *ivec, int32_t *n) const;
+		bool verify(const uint8_t *buf, uint32_t len) const;
 
 	private:
 		bool m_locked;
@@ -73,6 +80,16 @@ class Key
 };
 
 // Inlined functions
+inline uint8_t Key::version() const
+{
+	return m_version;
+}
+
+inline CryptUtils::PublicKeyAlgorithm Key::algorithm() const
+{
+	return m_algorithm;
+}
+
 inline uint32_t Key::bits() const
 {
 	if (m_rsa) {

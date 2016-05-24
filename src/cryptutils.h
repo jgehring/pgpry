@@ -54,6 +54,7 @@ typedef enum {
 
 typedef enum {
 	CIPHER_UNKOWN = -1,
+	CIPHER_IDEA = 1,
 	CIPHER_CAST5 = 3,
 	CIPHER_BLOWFISH = 4,
 	CIPHER_AES128 = 7,
