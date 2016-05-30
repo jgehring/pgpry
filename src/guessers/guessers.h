@@ -46,6 +46,8 @@ namespace Guessers
 
 class Guesser : public SysUtils::Thread
 {
+	static int const CHUNK_SIZE = 128;
+
 	public:
 		Guesser(Buffer *buffer);
 		virtual ~Guesser() { }

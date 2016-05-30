@@ -66,10 +66,10 @@ void Tester::run()
 	}
 
 	uint32_t numBlocks = 0;
-	Memblock blocks[8];
+	Memblock blocks[CHUNK_SIZE];
 
 	while (!abortFlag()) {
-		numBlocks = m_buffer->taken(8, blocks);
+		numBlocks = m_buffer->taken(CHUNK_SIZE, blocks);
 
 		for (uint32_t i = 0; i < numBlocks; i++) {
 			if (blocks[i].length > 0 && check(blocks[i])) {

@@ -35,6 +35,8 @@ class Buffer;
 
 class Tester : public SysUtils::Thread
 {
+	static int const CHUNK_SIZE = 128;
+
 	public:
 		Tester(const Key &key, Buffer *buffer);
 		~Tester();
