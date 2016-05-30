@@ -29,7 +29,9 @@
 #include <openssl/blowfish.h>
 #include <openssl/bn.h>
 #include <openssl/cast.h>
-#include <openssl/idea.h>
+#ifndef OPENSSL_NO_IDEA
+ #include <openssl/idea.h>
+#endif
 
 #include "packetheader.h"
 #include "pistream.h"
@@ -213,12 +215,14 @@ void Key::decrypt(const uint8_t *in, uint8_t *out, uint32_t length,
 		  uint8_t *ivec, int32_t *n) const
 {
 	switch (m_s2k.cipherAlgorithm()) {
+#ifndef OPENSSL_NO_IDEA
 		case CryptUtils::CIPHER_IDEA: {
 			IDEA_KEY_SCHEDULE ks;
 			idea_set_encrypt_key(keydata, &ks);
 			idea_cfb64_encrypt(in, out, length, &ks, ivec, n, IDEA_DECRYPT);
 		}
 		break;
+#endif
 		case CryptUtils::CIPHER_CAST5: {
 			CAST_KEY ck;
 			CAST_set_key(&ck, keySize, keydata);
